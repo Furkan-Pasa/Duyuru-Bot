@@ -89,9 +89,6 @@ class BaseScraper(ABC):
                 response = self.session.get(
                     self.url, timeout=bot_config.REQUEST_TIMEOUT
                 )
-                
-                # Güvenlik duvarına takılmamak için gecikme
-                time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
 
                 # HTTP 4xx veya 5xx hata kodları için (örn: 404, 500)
                 response.raise_for_status()
