@@ -16,7 +16,7 @@ class BotLogger:
     `get_logger` ile yapılandırılmış logger nesnesi alınır.
     """
     _instance = None
-    _logger = None
+    _logger = logging.getLogger('DuyuruBot')
     
     def __new__(cls):
         """Singleton pattern'i uygular."""
@@ -38,7 +38,6 @@ class BotLogger:
            - Seviye: INFO. (Konsolu `DEBUG` ile boğmamak için)
         """
         
-        self._logger = logging.getLogger('DuyuruBot')
         self._logger.setLevel(logging.DEBUG) # En düşük seviye (handler'lar filtreler)
         
         # Handler'lar zaten eklendiyse (örn: re-init) tekrar ekleme

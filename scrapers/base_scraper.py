@@ -17,7 +17,7 @@ iki metodu @abstractmethod gereği EZMEK (override) zorundadır:
 import time
 import requests
 from bs4 import BeautifulSoup
-from typing import List, Dict
+from typing import List, Dict, Optional
 from abc import ABC, abstractmethod  # Soyut sınıf için
 
 import bot_config
@@ -81,6 +81,9 @@ class BaseScraper(ABC):
 
         while retries < bot_config.MAX_RETRIES:
             try:
+                # Güvenlik duvarına takılmamak için gecikme
+                time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
+                
                 log_debug(f"🌐 [{self.name}] Sayfa çekiliyor... ({self.url})")
 
                 response = self.session.get(
@@ -145,7 +148,7 @@ class BaseScraper(ABC):
         pass
 
     @abstractmethod
-    def fetch_announcement_content(self, url: str) -> str:
+    def fetch_announcement_content(self, url: str) -> Optional[str]:
         """
         [ZORUNLU] Tek bir duyurunun URL'ine giderek içeriğini çeker.
 

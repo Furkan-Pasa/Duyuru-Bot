@@ -7,9 +7,11 @@ BŞEÜ'nün '.../arama/4' (Duyurular) formatındaki tüm siteleriyle uyumludur.
 (Örn: Bilgisayar Müh., Mühendislik Fak., SKS)
 """
 
+import time
 from bs4 import BeautifulSoup
-from typing import List, Dict
+from typing import List, Dict, Optional
 from urllib.parse import urljoin  # Göreceli linkleri tam linke çevirmek için
+import bot_config
 from .base_scraper import BaseScraper
 from core.logger import log_debug, log_info, log_warning, log_error 
 
@@ -33,7 +35,7 @@ class Scraper1(BaseScraper):
         log_info(f"✅ {self.name} scraper yüklendi. URL: {self.url}")
 
 
-    def fetch_announcement_content(self, url: str) -> str:
+    def fetch_announcement_content(self, url: str) -> Optional[str]:
         """
         [IMPLEMENTS BaseScraper]
         Tek bir duyuru URL'ine giderek hash'lenecek ana içeriği (HTML) çeker.
@@ -42,6 +44,7 @@ class Scraper1(BaseScraper):
         2. İçerik bulunamazsa (resim, yönlendirme vb.) 'None' döndürür.
         """
         try:
+            time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
             log_debug(f"🌐 [{self.name}] Duyuru İçeriği çekiliyor: {url}")
             response = self.session.get(url, timeout=20)
 

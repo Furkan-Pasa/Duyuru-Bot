@@ -31,21 +31,25 @@ _loop_ready = threading.Event()                   # Loop'un başlatıldığını
 class TelegramNotifier:
     """
     Asıl async bot işlemlerini (mesaj gönderme, formatlama) yapan sınıf.
-    
+
     Bu sınıfın instance'ı, arkaplandaki async thread'de (`_start_async_loop`)
     oluşturulur ve yaşar.
     """
     def __init__(self):
         """Telegram bot'u 'python-telegram-bot' kütüphanesi ile başlatır."""
-        self.bot = Bot(token=bot_config.TELEGRAM_BOT_TOKEN)
-    
+        token = bot_config.TELEGRAM_BOT_TOKEN
+        if not token:
+            log_error("🚨 TelegramNotifier: TELEGRAM_BOT_TOKEN eksik veya None!")
+            raise ValueError("TELEGRAM_BOT_TOKEN eksik.")
+        self.bot = Bot(token=token)
+
     async def send_announcement(self, channel_id: str, site_name: str, announcement: Dict, message_type: str = 'new') -> bool:
         """
         (Async) Kanala formatlanmış bir duyuru mesajı gönderir.
         """
         try:
             # 1. Mesajı formatla
-            message = self._format_message(site_name, announcement, message_type)
+            message = self._format_message(site_name, announcement, message_type) 
 
             # 2. Gönder (await ile)
             await self.bot.send_message(
@@ -53,7 +57,7 @@ class TelegramNotifier:
                 text=message,
                 parse_mode='HTML',
                 disable_web_page_preview=False
-            )
+            ) # type: ignore
 
             log_telegram_sent(site_name, announcement.get('title', 'Başlıksız'))
             return True
@@ -66,7 +70,7 @@ class TelegramNotifier:
             # Beklenmeyen diğer hatalar
             log_critical(f"🚨 [{site_name}] Telegram göndermede beklenmeyen hata: {e}", exc_info=True)
             return False
-    
+
     def _format_message(self, site_name: str, announcement: Dict, message_type: str = 'new') -> str:
         """
         Gönderilecek mesajı standart HTML formatına getirir.
@@ -82,7 +86,7 @@ class TelegramNotifier:
         title = announcement.get('title', 'Başlık yok')
         url = announcement.get('url', '')
         date = announcement.get('date', 'Tarih belirtilmemiş')
-        
+
         # Mesaj başlığını ayarla
         if message_type == 'update':
             header_text = "Duyuru Güncellendi"
@@ -90,7 +94,7 @@ class TelegramNotifier:
         else:
             header_text = "Yeni Duyuru"
             emoji = "🔔"
-        
+
         message = f"{emoji} <b>{header_text} - {site_name}</b>\n"
         message += "━━━━━━━━━━━━━━━━━━━━\n\n"
         message += f"<b>{self._escape_html(title)}</b>\n\n"
@@ -100,26 +104,26 @@ class TelegramNotifier:
             message += f"🔗 <a href='{url}'>Duyuruyu Aç</a>\n"
         message += "\n━━━━━━━━━━━━━━━━━━━━"
         return message
-  
+
     def _escape_html(self, text: str) -> str:
         """
         Metni 'parse_mode=HTML' için güvenli hale getirir (örn: <, >, & karakterlerini çevirir).
-        
+
         Args:
             text: Düz metin.
-            
+
         Returns:
             HTML-safe metin.
         """
         if not text:
             return ""
         # `html.escape` &, <, >, ", ' gibi tüm özel karakterleri çevirir.
-        return html.escape(str(text))  
+        return html.escape(str(text))
 
 def _start_async_loop():
     """
     Async event loop'u başlatan ve 'run_forever' ile kilitleyen thread hedefi.
-    
+
     Bu fonksiyon `start_telegram_loop` tarafından bir thread içinde çalıştırılır.
     """
     global _loop, _notifier
@@ -172,15 +176,15 @@ def send_to_telegram(channel_id: str, site_name: str, announcement: Dict, messag
     try:
         # 1. Coroutine'i oluştur
         coro = _notifier.send_announcement(channel_id, site_name, announcement, message_type)
-        
+
         # 2. Görevi arkaplandaki loop'a thread-safe olarak gönder
         future: Future = asyncio.run_coroutine_threadsafe(coro, _loop)
-        
+
         # 3. Bu sync thread'de, o async görevin bitmesini bekle
         # (Bu, eski asyncio.run() maliyetinden ÇOK daha hızlıdır)
-        result = future.result(timeout=45) 
+        result = future.result(timeout=45)
         return result
-        
+
     except Exception as e:
         log_critical(f"🚨 [{site_name}] send_to_telegram (threadsafe) hatası: {e}")
         return False
