@@ -446,7 +446,7 @@ class DuyuruScheduler:
                     update_found = True
                     
             except Exception as e:
-                log_debug(f"❌ [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerikten birisi çekilemedi: {ann['url']}, hata: {e}")
+                log_debug(f"❌ [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerikten birisi çekilemedi: {ann['url']}")
 
         # 3. Güncelleme BAŞLIKTA bulunduysa, ama 'is_recent' olmadığı için
         # içerik henüz çekilmediyse, Telegram'a göndermek için içeriği şimdi çek.
