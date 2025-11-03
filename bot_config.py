@@ -34,7 +34,7 @@ SITES = [
         'name': 'BŞEÜ Bilgisayar Müh.',               
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
         'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['01', '31'],             
+        'schedule_minutes': ['05', '35'],             
         'enabled': True                               
     },
     {
@@ -42,7 +42,7 @@ SITES = [
         'name': 'BŞEÜ Mühendislik Fak.',  
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
         'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['02', '32'],             
+        'schedule_minutes': ['15', '45'],             
         'enabled': True                               
     },
     {
@@ -50,7 +50,7 @@ SITES = [
         'name': 'BŞEÜ SKS',  
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
         'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['03', '33'],             
+        'schedule_minutes': ['25', '55'],             
         'enabled': True                               
     },
     {
