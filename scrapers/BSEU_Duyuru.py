@@ -69,9 +69,9 @@ class Scraper1(BaseScraper):
             return None
 
         except Exception as e:
-            log_error(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}")
-            log_error(f"❌ [{self.name}] {e}")
-            raise   # Hatayı _run_check'e (scheduler) geri fırlat
+            log_debug(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}")
+            log_debug(f"❌ [{self.name}] {e}")
+            return None
         
 
     def parse_announcements(self, soup: BeautifulSoup) -> List[Dict]:
