@@ -49,13 +49,13 @@ pip install -r requirements.txt
 
 Botun çalışması için gizli anahtarlarınızı ve ayarlarınızı yapılandırmanız gerekmektedir.
 
-### 1. `.env` Dosyası
+#### 1. `.env` Dosyası
 - ".env.example" dosyasının adını ".env" olarak değiştirin.
 - ".env" dosyasını açın ve aşağıdaki değişkenleri doldurun:
   - `TELEGRAM_BOT_TOKEN` @BotFather'dan aldığınız token.
   - `CHANNEL1`, `CHANNEL2`: Bildirimlerin gönderileceği Telegram kanal ID'leri (genellikle -100... ile başlar).
 
-### 2. `bot_config.py` Dosyası
+#### 2. `bot_config.py` Dosyası
 - Botun hangi siteleri, hangi zamanlamayla kontrol edeceğini `SITES` listesinden yönetebilirsiniz.
 - Yeni bir site buraya kolayca eklenebilir veya mevcut siteler enabled: `False` yapılarak pasifleştirilebilir.
 
