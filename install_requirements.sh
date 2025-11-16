@@ -1,4 +1,9 @@
 #!/bin/bash
+
+echo "Sistem gereksinimleri kontrol ediliyor (python3-venv)..."
+sudo apt-get update
+sudo apt-get install python3-venv -y
+
 echo "Python sanal ortami (.venv) olusturuluyor..."
 python3 -m venv .venv
 
