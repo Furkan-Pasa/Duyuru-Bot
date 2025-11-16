@@ -89,6 +89,12 @@ chmod +x service_install.sh
 sudo ./service_install.sh
 ```
 
+Servis durumunu kontrol etmek, bot loglarını canlı izlemek için:
+```bash
+sudo systemctl status duyuru-bot
+sudo journalctl -u duyuru-bot -f
+```
+
 Botun servisini kaldırmak için aşağıdaki komutları kullanabilirsiniz.
 ```bash
 chmod +x service_uninstall.sh
