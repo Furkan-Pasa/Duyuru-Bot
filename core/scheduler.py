@@ -281,8 +281,6 @@ class DuyuruScheduler:
         
         for ann in announcements_to_save:
             try:
-                # Limitli listenin tamamının içeriğini çek
-                log_debug(f"🌐 [{scraper.name}] (İlk Çalıştırma) İçerik çekiliyor: {ann['url']}")
                 # content_text ham HTML veya None olabilir
                 content_text = scraper.fetch_announcement_content(ann['url'])
                 ann['content'] = content_text
