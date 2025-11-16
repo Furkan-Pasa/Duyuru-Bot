@@ -80,6 +80,21 @@ Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını
 
 Bot başladıktan sonra terminalde `"🤖 BOT ÇALIŞIYOR. Kapatmak için CTRL+C basın."` mesajını göreceksiniz.
 
+### Servis Olarak Kurma (Linux)
+Bu yöntem, botu bir arka plan servisi (systemd) olarak kurar. Bu sayede sunucu yeniden başlasa bile bot otomatik olarak çalışır ve bir hata alıp çökerse kendini yeniden başlatır.
+
+Aşağıdaki komutlar, `duyuru-bot.service` adında bir systemd servisi oluşturur, etkinleştirir ve başlatır:
+```bash
+chmod +x service_install.sh
+sudo ./service_install.sh
+```
+
+Botun servisini kaldırmak için aşağıdaki komutları kullanabilirsiniz.
+```bash
+chmod +x service_uninstall.sh
+sudo ./service_uninstall.sh
+```
+
 
 ## 🏛️ Proje Mimarisi
 
@@ -107,4 +122,3 @@ Bu proje GNU General Public License v3 (GPL-3.0) altında lisanslanmıştır. De
 
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
 
-  
