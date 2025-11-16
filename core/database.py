@@ -9,6 +9,7 @@ kontrol edilmesi ve sorgulanması işlemlerini yönetir.
 her thread'e (örn: her scraper görevi) özel bir veritabanı bağlantısı sağlar.
 """
 
+import os
 import sqlite3
 import hashlib
 import threading
@@ -22,6 +23,19 @@ class Database:
         self.db_path = bot_config.DATABASE_PATH
         self.local_storage = threading.local()  # Thread-local depolama
         self._closed = False  # Kapatma sinyali için
+
+        # Veritabanı dosyasının bulunduğu 'data' klasörünü kontrol et
+        db_dir = os.path.dirname(self.db_path)
+        
+        # Eğer 'data' klasörü yoksa ve yol boş değilse, oluştur
+        if db_dir and not os.path.exists(db_dir):
+            try:
+                os.makedirs(db_dir)
+                log_info(f"📁 '{db_dir}' klasörü otomatik olarak oluşturuldu.")
+            except Exception as e:
+                log_critical(f"🛑 '{db_dir}' klasörü oluşturulamadı: {e}")
+                raise
+
         self.create_tables()
         self._check_and_migrate_db()
     
