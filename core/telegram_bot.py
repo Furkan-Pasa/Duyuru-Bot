@@ -13,7 +13,6 @@ Arkaplanda ayrı bir thread'de `asyncio` event loop'u çalıştırır
 import html
 import asyncio
 import threading
-from urllib.parse import quote
 from typing import Dict, Optional
 from concurrent.futures import Future
 from telegram import Bot
@@ -101,9 +100,7 @@ class TelegramNotifier:
         if date:
             message += f"📅 <i>{self._escape_html(date)}</i>\n\n"
         if url:
-            # URL'i 'quote' ile güvenli hale getirmek için
-            safe_url = quote(url, safe=':/')
-            message += f"🔗 <a href='{safe_url}'>Duyuruyu Aç</a>\n"
+            message += f"🔗 <a href='{url}'>Duyuruyu Aç</a>\n"
         message += "\n━━━━━━━━━━━━━━━━━━━━"
         return message
 
