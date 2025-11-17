@@ -31,7 +31,7 @@ class Database:
         if db_dir and not os.path.exists(db_dir):
             try:
                 os.makedirs(db_dir)
-                log_info(f"📁 '{db_dir}' klasörü otomatik olarak oluşturuldu.")
+                log_debug(f"📁 '{db_dir}' klasörü otomatik olarak oluşturuldu.")
             except Exception as e:
                 log_critical(f"🛑 '{db_dir}' klasörü oluşturulamadı: {e}")
                 raise
