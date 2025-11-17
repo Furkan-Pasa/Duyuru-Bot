@@ -113,7 +113,7 @@ REQUEST_DELAY_MS = 500
 # Son kaç duyuru için "içerik güncellemesi" (hash) kontrolü yapılsın.
 NORMAL_RUN_UPDATE_CHECK_LIMIT = 5
 # Son kaç duyuru için "Başlık" (hash) kontrolü yapılsın.
-NORMAL_RUN_TOTAL_CHECK_LIMIT = 20
+NORMAL_RUN_TOTAL_CHECK_LIMIT = 10
 
 # ===================================================
 #     SCRAPING AYARLARI (İLK ÇALIŞTIRMA)
@@ -121,5 +121,5 @@ NORMAL_RUN_TOTAL_CHECK_LIMIT = 20
 # İlk çalıştırmada Telegram'a gönderilecek en yeni duyuru sayısı
 FIRST_RUN_SEND_LIMIT = 1
 # İlk çalıştırmada (DB boşken) içeriği çekilecek maksimum duyuru sayısı
-FIRST_RUN_FETCH_LIMIT = 5
+FIRST_RUN_FETCH_LIMIT = 10
 # ===================================================
