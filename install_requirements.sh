@@ -13,4 +13,4 @@ source ./.venv/bin/activate
 echo "Gereksinimler yukleniyor (requirements.txt)..."
 pip install -r requirements.txt
 
-echo "Kurulum tamamlandi."
+echo "Kurulum tamamlandi!"
