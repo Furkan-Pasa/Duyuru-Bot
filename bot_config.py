@@ -1,10 +1,10 @@
 # bot_config.py
 """
 Duyuru Botu için merkezi konfigürasyon dosyası.
-Token'lar, site listeleri, veritabanı yolu, log seviyesi vb. 
+Token'lar, site listeleri, veritabanı yolu, log seviyesi vb.
 bu dosyadan okunur, '.env' dosyasından gizli bilgileri yükler.
 """
- 
+
 import os
 
 # ===================================================
@@ -31,35 +31,35 @@ SITES = [
         # 'enabled':             Bu site aktif mi? (True/False)
         
         'url': 'https://www.bilecik.edu.tr/bilgisayar/arama/4',
-        'name': 'BŞEÜ Bilgisayar Müh.',               
+        'name': 'BŞEÜ Bilgisayar Müh.',
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
-        'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['05', '35'],             
-        'enabled': True                               
+        'telegram_channel_id': os.getenv("CHANNEL1"),
+        'schedule_minutes': ['05', '35'],
+        'enabled': True
     },
     {
         'url': 'https://bilecik.edu.tr/muhendislik/arama/4',
-        'name': 'BŞEÜ Mühendislik Fak.',  
+        'name': 'BŞEÜ Mühendislik Fak.',
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
-        'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['15', '45'],             
-        'enabled': True                               
+        'telegram_channel_id': os.getenv("CHANNEL1"),
+        'schedule_minutes': ['15', '45'],
+        'enabled': True
     },
     {
         'url': 'https://www.bilecik.edu.tr/sks/arama/4',
-        'name': 'BŞEÜ SKS',  
+        'name': 'BŞEÜ SKS',
         'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
-        'telegram_channel_id': os.getenv("CHANNEL1"), 
-        'schedule_minutes': ['25', '55'],             
-        'enabled': True                               
+        'telegram_channel_id': os.getenv("CHANNEL1"),
+        'schedule_minutes': ['25', '55'],
+        'enabled': True
     },
     {
         'url': '',
-        'name': '',  
+        'name': '',
         'scraper_path': '',
-        'telegram_channel_id': os.getenv(""), 
-        'schedule_minutes': ['00', '00'],             
-        'enabled': False                             
+        'telegram_channel_id': os.getenv(""),
+        'schedule_minutes': ['00', '00'],
+        'enabled': False
     },
 ]
 
