@@ -16,12 +16,13 @@ Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bi
 
 ## 🔧 Kurulum
 Proje, hem Windows hem de Linux/macOS ortamları için kurulum scriptleri içermektedir.
+> **Not:** Bu proje için tavsiye edilen Python sürümü: ![Python Version](https://img.shields.io/badge/python-3.13-blue)
 1. Projeyi klonlayın: 
 ```bash
 git clone https://github.com/Furkan-Pasa/Duyuru-Bot
 cd Duyuru-Bot
 ```
-2. (Önerilen) Gerekli bağımlılıkları ve sanal ortamı (`.venv`) kurun:
+1. (Önerilen) Gerekli bağımlılıkları ve sanal ortamı (`.venv`) kurun:
 - **Windows için:** 
 ```dos
 install_requirements.bat
