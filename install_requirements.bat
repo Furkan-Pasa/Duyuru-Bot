@@ -1,6 +1,6 @@
 @echo off
 echo Python sanal ortami (.venv) olusturuluyor...
-py -m venv .venv
+python -m venv .venv
 
 echo Sanal ortam aktive ediliyor...
 call .\.venv\Scripts\activate.bat
