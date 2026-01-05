@@ -95,13 +95,13 @@ class TelegramNotifier:
             emoji = "🔔"
 
         message = f"{emoji} <b>{header_text} - {site_name}</b>\n"
-        message += "━━━━━━━━━━━━━━━━━━━━\n\n"
+        message += "━━━━━━━━━━━━━━━━━\n\n"
         message += f"<b>{self._escape_html(title)}</b>\n\n"
         if date:
             message += f"📅 <i>{self._escape_html(date)}</i>\n\n"
         if url:
             message += f"🔗 <a href='{url}'>Duyuruyu Aç</a>\n"
-        message += "\n━━━━━━━━━━━━━━━━━━━━"
+        message += "\n━━━━━━━━━━━━━━━━━"
         return message
 
     def _escape_html(self, text: str) -> str:
