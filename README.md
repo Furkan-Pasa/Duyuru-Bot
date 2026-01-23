@@ -1,8 +1,9 @@
 # Duyuru-Bot
-Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bir Telegram kanalına gönderen Python botu. 
 
+Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bir Telegram kanalına gönderen Python botu.
 
 ## Temel Özellikler
+
 - **Periyodik Kontrol:** `APScheduler` kullanarak zamanlanmış (cron) görevler ile siteleri otomatik olarak kontrol eder.
 - **Asenkron Bildirimler:** `python-telegram-bot` kütüphanesini ayrı bir `asyncio` event loop'unda (farklı bir thread'de) çalıştırarak ana scraper thread'lerini bloklamadan yüksek performanslı bildirim gönderir.
 - **Thread-Safe Veritabanı:** `APScheduler`'ın her görev (scraper) için farklı thread'ler kullanma olasılığına karşı, `threading.local()` kullanarak her thread'in kendi izole SQLite bağlantısını yönetmesini sağlar. Bu, "database is locked" hatalarını engeller.
@@ -13,95 +14,115 @@ Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bi
 - **Graceful Shutdown:** `CTRL+C` (SIGINT) sinyalini yakalayarak tüm veritabanı bağlantılarını, `requests` session'larını ve asenkron döngüyü güvenli bir şekilde kapatır.
 - **Rotating Logs:** `TimedRotatingFileHandler` kullanarak log dosyalarını her gece yarısı otomatik olarak arşivler ve eskilerini siler.
 
-
 ## 🔧 Kurulum
+
 Proje, hem Windows hem de Linux/macOS ortamları için kurulum scriptleri içermektedir.
+
 > **Not:** Bu proje için tavsiye edilen Python sürümü: ![Python Version](https://img.shields.io/badge/python-3.13-blue)
-1. Projeyi klonlayın: 
+
+1. Projeyi klonlayın:
+
 ```bash
 git clone https://github.com/Furkan-Pasa/Duyuru-Bot
 cd Duyuru-Bot
 ```
+
 1. (Önerilen) Gerekli bağımlılıkları ve sanal ortamı (`.venv`) kurun:
-- **Windows için:** 
+
+- **Windows için:**
+
 ```dos
 install_requirements.bat
 ```
+
 veya
+
 ```dos
 python -m venv .venv
 .\.venv\Scripts\activate.bat
 pip install -r requirements.txt
 ```
+
 - **Linux/macOS için:**
+
 ```Bash
 chmod +x install_requirements.sh
 ./install_requirements.sh
 ```
+
 veya
+
 ```Bash
 python3 -m venv .venv
 source ./.venv/bin/activate
 pip install -r requirements.txt
 ```
 
-
 ## ⚙️ Yapılandırma
 
 Botun çalışması için gizli anahtarlarınızı ve ayarlarınızı yapılandırmanız gerekmektedir.
 
 #### 1. `.env` Dosyası
+
 - ".env.example" dosyasının adını ".env" olarak değiştirin.
 - ".env" dosyasını açın ve aşağıdaki değişkenleri doldurun:
   - `TELEGRAM_BOT_TOKEN` @BotFather'dan aldığınız token.
   - `CHANNEL1`, `CHANNEL2`: Bildirimlerin gönderileceği Telegram kanal ID'leri (genellikle -100... ile başlar).
 
 #### 2. `bot_config.py` Dosyası
+
 - Botun hangi siteleri, hangi zamanlamayla kontrol edeceğini `SITES` listesinden yönetebilirsiniz.
 - Yeni bir site buraya kolayca eklenebilir veya mevcut siteler enabled: `False` yapılarak pasifleştirilebilir.
 
-> Şimdilik sadece "BSEU_Duyuru" scrapper hazır. Farklı bir site formatı için yeni bir scraper eklemek, BaseScraper soyut sınıfından miras alınarak ve BSEU_Duyuru.py dosyası referans alınarak kolayca yapılabilir. Gerekli adımlar dosya docstring'lerinde açıklanmıştır.
-
+> Şimdilik sadece "Scraper_BSEU" scraper'ı hazır. Farklı bir site formatı için yeni bir scraper eklemek, BaseScraper soyut sınıfından miras alınarak ve Scraper_BSEU.py dosyası referans alınarak kolayca yapılabilir. Gerekli adımlar dosya docstring'lerinde açıklanmıştır.
 
 ## ▶️ Çalıştırma
+
 Gerekli yapılandırmalar yapıldıktan sonra botu başlatabilirsiniz.
 
 - **Windows için:**
+
 ```dos
 start_bot.bat
 ```
+
 Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını aktive eder ve `python bot_main.py` komutunu çalıştırır.
 
 - **Linux/macOS için:**
+
 ```bash
 chmod +x start_bot.sh
 ./start_bot.sh
 ```
+
 Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını aktive eder ve `python3 bot_main.py` komutunu çalıştırır.
 
 Bot başladıktan sonra terminalde `"🤖 BOT ÇALIŞIYOR. Kapatmak için CTRL+C basın."` mesajını göreceksiniz.
 
 ### Servis Olarak Kurma (Linux)
+
 Bu yöntem, botu bir arka plan servisi (systemd) olarak kurar. Bu sayede sunucu yeniden başlasa bile bot otomatik olarak çalışır ve bir hata alıp çökerse kendini yeniden başlatır.
 
 Aşağıdaki komutlar, `duyuru-bot.service` adında bir systemd servisi oluşturur, etkinleştirir ve başlatır:
+
 ```bash
 chmod +x service_install.sh
 sudo ./service_install.sh
 ```
 
 Servis durumunu kontrol etmek, bot loglarını canlı izlemek için:
+
 ```bash
 sudo systemctl status duyuru-bot
 sudo journalctl -u duyuru-bot -f
 ```
 
 Botun servisini kaldırmak için aşağıdaki komutları kullanabilirsiniz.
+
 ```bash
 chmod +x service_uninstall.sh
 sudo ./service_uninstall.sh
 ```
-
 
 ## 🏛️ Proje Mimarisi
 
@@ -121,11 +142,10 @@ sudo ./service_uninstall.sh
 
 - `scrapers/base_scraper.py`: Tüm scraper'lar için ortak mantığı (hata denemesi, `requests.Session` yönetimi) içeren soyut (abstract) bir ana sınıftır.
 
-- `scrapers/BSEU_Duyuru.py:` BaseScraper'ı miras alarak siteye özel HTML parse etme (kazıma) mantığını uygular.
-
+- `scrapers/Scraper_BSEU.py`: BaseScraper'ı miras alarak siteye özel HTML parse etme (kazıma) mantığını uygular.
 
 ## ⚖️ Lisans
+
 Bu proje GNU General Public License v3 (GPL-3.0) altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakınız.
 
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
-

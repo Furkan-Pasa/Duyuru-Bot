@@ -32,7 +32,7 @@ SITES = [
         
         'url': 'https://www.bilecik.edu.tr/bilgisayar/arama/4',
         'name': 'BŞEÜ Bilgisayar Müh.',
-        'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
+        'scraper_path': 'scrapers.Scraper_BSEU.BSEU_Duyuru',
         'telegram_channel_id': os.getenv("CHANNEL1"),
         'schedule_minutes': ['05', '35'],
         'enabled': True
@@ -40,7 +40,7 @@ SITES = [
     {
         'url': 'https://bilecik.edu.tr/muhendislik/arama/4',
         'name': 'BŞEÜ Mühendislik Fak.',
-        'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
+        'scraper_path': 'scrapers.Scraper_BSEU.BSEU_Duyuru',
         'telegram_channel_id': os.getenv("CHANNEL1"),
         'schedule_minutes': ['15', '45'],
         'enabled': True
@@ -48,7 +48,7 @@ SITES = [
     {
         'url': 'https://www.bilecik.edu.tr/sks/arama/4',
         'name': 'BŞEÜ SKS',
-        'scraper_path': 'scrapers.BSEU_Duyuru.Scraper1',
+        'scraper_path': 'scrapers.Scraper_BSEU.BSEU_Duyuru',
         'telegram_channel_id': os.getenv("CHANNEL1"),
         'schedule_minutes': ['25', '55'],
         'enabled': True
@@ -61,6 +61,14 @@ SITES = [
         'schedule_minutes': ['00', '00'],
         'enabled': False
     },
+    {
+        'url': '',
+        'name': '',
+        'scraper_path': '',
+        'telegram_channel_id': os.getenv(""),
+        'schedule_minutes': ['00', '00'],
+        'enabled': False
+    }
 ]
 
 # ===================================================

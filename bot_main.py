@@ -1,5 +1,4 @@
 # Furkan "Paşa" Çelik
-# 26.10.2025
 # bot_main.py
 """
 Ana Başlatıcı (Entry Point).

@@ -53,7 +53,7 @@ class BaseScraper(ABC):
         """
         session = requests.Session()
 
-       # Standart tarayıcı gibi görün (bot engeline takılmamak için)
+        # Standart tarayıcı gibi görün (bot engeline takılmamak için)
         session.headers.update({
             "User-Agent": bot_config.USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -122,7 +122,7 @@ class BaseScraper(ABC):
         """
         [ZORUNLU] HTML (soup) 'u parse ederek duyuru listesini döndürür.
 
-        Bu metot, alt sınıflar (örn: BSEU_Duyuru.py) tarafından
+        Bu metot, alt sınıflar (örn: Scraper.py) tarafından
         mutlaka ezilmeli (override) ve o sitenin HTML yapısına
         göre yazılmalıdır.
 
@@ -158,7 +158,8 @@ class BaseScraper(ABC):
             url: Tek bir duyurunun tam URL'i.
 
         Returns:
-            str: Hash'lenecek içerik (genellikle ham HTML string'i).
+            Optional[str]: Hash'lenecek içerik (genellikle ham HTML string'i).
+                          İçerik çekilemezse None döner.
         """
         pass
 

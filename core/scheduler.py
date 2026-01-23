@@ -32,14 +32,14 @@ def import_from_string(path: str):
     'paket.modul.ClassAdi' formatındaki bir yolu dinamik olarak import eder.
     
     Örnek:
-        'scrapers.BSEU_Duyuru.Scraper1' -> Scraper1 class'ını döndürür.
+        'scrapers.Scraper.Scraper1' -> Scraper1 class'ını döndürür.
         
     Returns:
         Yüklenen Class nesnesi.
     """
     try:
         # Yolu, modül ve class adı olarak ayırır
-        # (örn: 'scrapers.BSEU_Duyuru', 'Scraper1')
+        # (örn: 'scrapers.Scraper', 'Scraper1')
         module_path, class_name = path.rsplit('.', 1)
     except ValueError:
         log_error(f"❌ Geçersiz import yolu: '{path}'. Format: 'paket.modul.ClassAdi'")
@@ -102,7 +102,7 @@ class DuyuruScheduler:
                     log_error(f"❌ {site_name} için config'de 'scraper_path' eksik. Atlanıyor.")
                     continue
                 
-                # 'scrapers.BSEU_Duyuru.Scraper1' yolundan Scraper1 class'ını import et
+                # 'scrapers.Scraper.Scraper1' yolundan Scraper1 class'ını import et
                 ScraperClass = import_from_string(scraper_path)
                 
                 # Scraper'dan bir instance oluştur (BaseScraper __init__ çağrılır)

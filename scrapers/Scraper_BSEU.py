@@ -1,4 +1,4 @@
-# scrapers/BSEU_Duyuru.py
+# scrapers/Scraper_BSEU.py
 """
 Bilecik Üniversitesi (BŞEÜ) 'Liste Görünümü' Scraper'ı.
 
@@ -8,6 +8,7 @@ BŞEÜ'nün '.../arama/4' (Duyurular) formatındaki tüm siteleriyle uyumludur.
 """
 
 import time
+from datetime import datetime
 from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
 from urllib.parse import urljoin  # Göreceli linkleri tam linke çevirmek için
@@ -15,7 +16,7 @@ import bot_config
 from .base_scraper import BaseScraper
 from core.logger import log_debug, log_info, log_warning, log_error 
 
-class Scraper1(BaseScraper):
+class BSEU_Duyuru(BaseScraper):
     """
     BŞEÜ 'Liste Görünümü' (arama/4) sayfaları için scraper.
     
@@ -46,7 +47,7 @@ class Scraper1(BaseScraper):
         try:
             time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
             log_debug(f"🌐 [{self.name}] Duyuru İçeriği çekiliyor: {url}")
-            response = self.session.get(url, timeout=20)
+            response = self.session.get(url, timeout=bot_config.REQUEST_TIMEOUT)
 
             response.raise_for_status()
             response.encoding = response.apparent_encoding
@@ -69,8 +70,8 @@ class Scraper1(BaseScraper):
             return None
 
         except Exception as e:
-            log_debug(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}")
-            log_debug(f"❌ [{self.name}] {e}")
+            log_error(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}")
+            log_error(f"❌ [{self.name}] {e}")
             return None
         
 
@@ -79,8 +80,9 @@ class Scraper1(BaseScraper):
         [IMPLEMENTS BaseScraper]
         Ana liste sayfasının HTML'ini (soup) parse ederek duyuru listesini çıkarır.
         
-        BŞEÜ'nün 'liste-gorunum' ID'li 'div'i içindeki 'tbody' > 'tr'
-        yapısını baz alır.
+        BŞEÜ web sitesinin yeni kart yapısını (div.icerik-eleman) baz alır.
+        Her kart 'data-tarih' attribute'unda tarihi, içindeki 'a' tag'ında
+        başlık ve linki barındırır.
         
         Args:
             soup: `fetch_page`'den gelen BeautifulSoup nesnesi.
@@ -90,53 +92,46 @@ class Scraper1(BaseScraper):
         """
         announcements_list = []
         
-        # HTML'de "Liste" görünümünün ID'si 'liste-gorunum'
-        list_view = soup.find('div', id='liste-gorunum')
+        # Yeni HTML yapısı: div.icerik-eleman kartları
+        # Her kart data-tarih, data-icerikid gibi attribute'lara sahip
+        cards = soup.find_all('div', class_='icerik-eleman')
         
-        if not list_view:
-            log_error(f"❌ {self.name}: 'liste-gorunum' ID'li ana div bulunamadı!")
+        if not cards:
+            log_error(f"❌ {self.name}: 'icerik-eleman' class'lı div bulunamadı!")
             return []
+        
+        log_debug(f"📋 [{self.name}] Sayfada {len(cards)} adet kart bulundu.")
 
-        # Bu div içindeki tablo gövdesini (tbody) bul
-        table_body = list_view.find('tbody')
-        
-        if not table_body:
-            log_error(f"❌ {self.name}: 'tbody' elementi bulunamadı!")
-            return []
-            
-        # tbody içindeki tüm satırları (tr) al
-        rows = table_body.find_all('tr')
-        
-        if not rows:
-            log_error(f"❌ {self.name}: 'tbody' içinde 'tr' (satır) bulunamadı!")
-            return []
-
-        # Her bir satırı (duyuruyu) işle
-        for row in rows:
+        # Her bir kartı (duyuruyu) işle
+        for card in cards:
             try:
-                # Satırdaki tüm hücreleri (td) al
-                cells = row.find_all('td')
+                # 1. Tarihi al (data-tarih attribute'undan)
+                #    Örn: "2026-01-20T11:50:00"
+                raw_date = card.get('data-tarih', '')
                 
-                # Beklenen yapıda en az 2 hücre olmalı (Tarih, Başlık)
-                if len(cells) < 2:
-                    continue
-                    
-                # 1. Tarihi al (ilk hücre)
-                #    BaseScraper'daki _clean_text'i kullan
-                date = self._clean_text(cells[0].get_text())
+                # Tarihi insan okunabilir formata çevir (2026-01-20T11:50:00 -> 20.01.2026)
+                if raw_date:
+                    try:
+                        dt = datetime.fromisoformat(raw_date)
+                        date = dt.strftime('%d.%m.%Y')
+                    except ValueError:
+                        date = raw_date  # Parse edilemezse olduğu gibi kullan
+                else:
+                    date = ''
                 
-                # 2. Başlık ve linki al (ikinci hücre)
-                link_tag = cells[1].find('a')
+                # 2. Kart içindeki linki bul (card-title veya card-body içinde)
+                #    h6.card-title içindeki a veya doğrudan kart içindeki ilk a
+                link_tag = card.select_one('h6.card-title a') or card.find('a')
                 
                 if not link_tag:
-                    continue # Link yoksa bu satırı atla
+                    continue  # Link yoksa bu kartı atla
                     
                 # 3. Verileri ayıkla
                 title = self._clean_text(link_tag.get_text())
                 relative_url = link_tag.get('href')
                 
-                if not relative_url:
-                    continue # 'href' attribute'u boşsa atla
+                if not relative_url or not title:
+                    continue  # href veya başlık yoksa atla
                     
                 # Göreceli URL'i (örn: /bilgisayar/Icerik/...) tam adrese çevir
                 full_url = urljoin(self.BASE_URL, relative_url)
@@ -154,7 +149,7 @@ class Scraper1(BaseScraper):
                 })
                 
             except Exception as e:
-                log_warning(f"⚠️ {self.name}: Bir duyuru satırı parse edilirken hata: {e}")
+                log_warning(f"⚠️ {self.name}: Bir duyuru kartı parse edilirken hata: {e}")
                 continue
         
         return announcements_list

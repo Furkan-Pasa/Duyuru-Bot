@@ -66,9 +66,6 @@ class BotLogger:
         self._logger.addHandler(file_handler)
         
         # 2. KONSOL HANDLER (Sadece INFO ve üstü)
-        
-        
-        # 2. KONSOL HANDLER (Sadece INFO ve üstü)
         console_format = logging.Formatter(
             '%(asctime)s | %(levelname)s | %(message)s',
             datefmt='%H:%M:%S'

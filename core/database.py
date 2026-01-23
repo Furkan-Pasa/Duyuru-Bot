@@ -15,7 +15,7 @@ import hashlib
 import threading
 import bot_config
 from typing import Dict, Optional
-from core.logger import log_debug, log_info, log_warning, log_database_error
+from core.logger import log_debug, log_info, log_warning, log_critical, log_database_error
 
 class Database:
     def __init__(self):
