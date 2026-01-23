@@ -36,37 +36,19 @@ git clone https://github.com/Furkan-Pasa/Duyuru-Bot
 cd Duyuru-Bot
 ```
 
-1. (Önerilen) Gerekli bağımlılıkları ve sanal ortamı (`.venv`) kurun:
-
 - **Windows için:**
-
-> **Not:** Eğer `python` komutu hata verirse veya Microsoft Store açılırsa, Windows Ayarları'ndan **"App Execution Aliases"** (Uygulama Yürütme Takma Adları) menüsüne gidin ve `python.exe`/`python3.exe` seçeneklerini **KAPATIN**. Alternatif olarak komutlarda `python` yerine `py` kullanabilirsiniz.
 
 ```dos
 scripts\windows_install_requirements.bat
 ```
 
-veya
-
-```dos
-python -m venv .venv
-.\.venv\Scripts\activate.bat
-pip install -r requirements.txt
-```
+> **Not:** Eğer `python` komutu hata verirse veya Microsoft Store açılırsa, Windows Ayarları'ndan **"App Execution Aliases"** (Uygulama Yürütme Takma Adları) menüsüne gidin ve `python.exe`/`python3.exe` seçeneklerini **KAPATIN**. Alternatif olarak komutlarda `python` yerine `py` kullanabilirsiniz.
 
 - **Linux/macOS için:**
 
 ```Bash
 chmod +x scripts/linux_install_requirements.sh
 ./scripts/linux_install_requirements.sh
-```
-
-veya
-
-```Bash
-python3 -m venv .venv
-source ./.venv/bin/activate
-pip install -r requirements.txt
 ```
 
 ## ⚙️ Yapılandırma
