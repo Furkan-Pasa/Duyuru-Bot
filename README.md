@@ -92,30 +92,78 @@ Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını
 
 Bot başladıktan sonra terminalde `"🤖 BOT ÇALIŞIYOR. Kapatmak için CTRL+C basın."` mesajını göreceksiniz.
 
-### Servis Olarak Kurma (Linux)
+### 🚀 Linux Sunucu Kurulumu (Production)
 
-Bu yöntem, botu bir arka plan servisi (systemd) olarak kurar. Bu sayede sunucu yeniden başlasa bile bot otomatik olarak çalışır ve bir hata alıp çökerse kendini yeniden başlatır.
+Linux sunucularda botu arka planda ve sürekli çalışır halde tutmak için iki yöntem mevcuttur.
 
-Aşağıdaki komutlar, `duyuru-bot.service` adında bir systemd servisi oluşturur, etkinleştirir ve başlatır:
+#### Yöntem 1: PM2 ile Çalıştırma (Önerilen)
 
-```bash
-chmod +x scripts/linux_service_install.sh
-sudo ./scripts/linux_service_install.sh
-```
+PM2, uygulamanızı yöneten, bellek optimizasyonu yapan ve çökme durumunda otomatik yeniden başlatan gelişmiş bir araçtır.
 
-Servis durumunu kontrol etmek, bot loglarını canlı izlemek için:
+1.  **PM2'yi Yükleyin:**
 
-```bash
-sudo systemctl status duyuru-bot
-sudo journalctl -u duyuru-bot -f
-```
+    ```bash
+    sudo npm install pm2 -g
+    ```
 
-Botun servisini kaldırmak için aşağıdaki komutları kullanabilirsiniz.
+2.  **Botu Başlatın:**
 
-```bash
-chmod +x scripts/linux_service_uninstall.sh
-sudo ./scripts/linux_service_uninstall.sh
-```
+    ```bash
+    pm2 start ecosystem.config.js
+    ```
+
+    > `ecosystem.config.js` yapılandırması sayesinde bot, maksimum 300MB bellek kullanacak şekilde ve otomatik restart özelliğiyle açılır.
+
+3.  **Yararlı Komutlar:**
+
+| Açıklama                | Komut                             |
+| :---------------------- | :-------------------------------- |
+| **Durumu Gör**          | `pm2 list`                        |
+| **Canlı Kaynak İzleme** | `pm2 monit`                       |
+| **Logları İzle**        | `pm2 logs duyuru-bot --lines 100` |
+| **Botu Durdur**         | `pm2 stop duyuru-bot`             |
+| **Botu Yeniden Başlat** | `pm2 restart duyuru-bot`          |
+| **Uygulamayı Sil**      | `pm2 delete duyuru-bot`           |
+
+4.  **Sunucu Yeniden Başladığında Otomatik Açılma:**
+    Sunucu reboot edildiğinde botun tekrar çalışması için:
+
+    ```bash
+    # 1. Şu komutu çalıştırın:
+    pm2 startup
+
+    # 2. Terminalde size "sudo env PATH=..." ile başlayan uzun bir komut verecek.
+    #    O satırı kopyalayın ve terminale yapıştırıp çalıştırın.
+
+    # 3. Son olarak mevcut listeyi kaydedin:
+    pm2 save
+    ```
+
+---
+
+#### Yöntem 2: Systemd Servisi (Alternatif)
+
+Harici bir araç (npm/pm2) kurmak istemiyorsanız, Linux'un yerleşik servis yöneticisini kullanabilirsiniz.
+
+1.  **Servisi Kurun ve Başlatın:**
+
+    ```bash
+    chmod +x scripts/linux_service_install.sh
+    sudo ./scripts/linux_service_install.sh
+    ```
+
+2.  **Kontrol etmek için:**
+
+    ```bash
+    sudo systemctl status duyuru-bot
+    sudo journalctl -u duyuru-bot -f
+    ```
+
+3.  **Servisi kaldırmak için:**
+    ```bash
+    chmod +x scripts/linux_service_uninstall.sh
+    sudo ./scripts/linux_service_uninstall.sh
+    ```
 
 ## 🏛️ Proje Mimarisi
 
