@@ -1,5 +1,13 @@
 # Duyuru-Bot
 
+![Version](https://img.shields.io/github/v/release/Furkan-Pasa/Duyuru-Bot?include_prereleases&sort=semver&style=flat-square&label=version)
+![License](https://img.shields.io/github/license/Furkan-Pasa/Duyuru-Bot?style=flat-square)
+![Python](https://img.shields.io/badge/python-3.13-blue?style=flat-square&logo=python&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-020202?style=flat-square)
+![Last Commit](https://img.shields.io/github/last-commit/Furkan-Pasa/Duyuru-Bot?style=flat-square)
+![Issues](https://img.shields.io/github/issues/Furkan-Pasa/Duyuru-Bot?style=flat-square)
+![Repo Size](https://img.shields.io/github/repo-size/Furkan-Pasa/Duyuru-Bot?style=flat-square)
+
 Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bir Telegram kanalına gönderen Python botu.
 
 ## Temel Özellikler
@@ -16,9 +24,10 @@ Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bi
 
 ## 🔧 Kurulum
 
-Proje, hem Windows hem de Linux/macOS ortamları için kurulum scriptleri içermektedir.
+Proje, **Windows**, **Linux** işletim sistemleriyle tam uyumludur. Kurulum sürecini otomatize etmek ve hızlandırmak için her platforma özel hazır scriptler (batch/shell) mevcuttur.
 
-> **Not:** Bu proje için tavsiye edilen Python sürümü: ![Python Version](https://img.shields.io/badge/python-3.13-blue)
+> [!IMPORTANT]
+> Bu proje **Python 3.13** sürümü kullanılarak geliştirilmiştir.
 
 1. Projeyi klonlayın:
 
@@ -31,8 +40,10 @@ cd Duyuru-Bot
 
 - **Windows için:**
 
+> **Not:** Eğer `python` komutu hata verirse veya Microsoft Store açılırsa, Windows Ayarları'ndan **"App Execution Aliases"** (Uygulama Yürütme Takma Adları) menüsüne gidin ve `python.exe`/`python3.exe` seçeneklerini **KAPATIN**. Alternatif olarak komutlarda `python` yerine `py` kullanabilirsiniz.
+
 ```dos
-install_requirements.bat
+scripts\windows_install_requirements.bat
 ```
 
 veya
@@ -46,8 +57,8 @@ pip install -r requirements.txt
 - **Linux/macOS için:**
 
 ```Bash
-chmod +x install_requirements.sh
-./install_requirements.sh
+chmod +x scripts/linux_install_requirements.sh
+./scripts/linux_install_requirements.sh
 ```
 
 veya
@@ -83,7 +94,7 @@ Gerekli yapılandırmalar yapıldıktan sonra botu başlatabilirsiniz.
 - **Windows için:**
 
 ```dos
-start_bot.bat
+scripts\windows_start_bot.bat
 ```
 
 Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını aktive eder ve `python bot_main.py` komutunu çalıştırır.
@@ -91,8 +102,8 @@ Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını
 - **Linux/macOS için:**
 
 ```bash
-chmod +x start_bot.sh
-./start_bot.sh
+chmod +x scripts/linux_start_bot.sh
+./scripts/linux_start_bot.sh
 ```
 
 Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını aktive eder ve `python3 bot_main.py` komutunu çalıştırır.
@@ -106,8 +117,8 @@ Bu yöntem, botu bir arka plan servisi (systemd) olarak kurar. Bu sayede sunucu 
 Aşağıdaki komutlar, `duyuru-bot.service` adında bir systemd servisi oluşturur, etkinleştirir ve başlatır:
 
 ```bash
-chmod +x service_install.sh
-sudo ./service_install.sh
+chmod +x scripts/linux_service_install.sh
+sudo ./scripts/linux_service_install.sh
 ```
 
 Servis durumunu kontrol etmek, bot loglarını canlı izlemek için:
@@ -120,8 +131,8 @@ sudo journalctl -u duyuru-bot -f
 Botun servisini kaldırmak için aşağıdaki komutları kullanabilirsiniz.
 
 ```bash
-chmod +x service_uninstall.sh
-sudo ./service_uninstall.sh
+chmod +x scripts/linux_service_uninstall.sh
+sudo ./scripts/linux_service_uninstall.sh
 ```
 
 ## 🏛️ Proje Mimarisi

@@ -1,5 +1,10 @@
 @echo off
+color a
+
 echo Python sanal ortami (.venv) olusturuluyor...
+
+:: Scriptin calistigi klasorun bir ustune (proje kok dizinine) git
+pushd %~dp0..
 python -m venv .venv
 
 echo Sanal ortam aktive ediliyor...

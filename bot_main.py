@@ -1,4 +1,3 @@
-# Furkan "Paşa" Çelik
 # bot_main.py
 """
 Ana Başlatıcı (Entry Point).

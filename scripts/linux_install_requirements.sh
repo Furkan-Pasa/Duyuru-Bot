@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Scriptin çaliştiği dizinin bir üstüne (proje köküne) git
+cd "$(dirname "$0")/.."
+
 echo "Sistem gereksinimleri kontrol ediliyor (python3-venv)..."
 sudo apt-get update
 sudo apt-get install python3-venv -y

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script'in bulunduğu dizine git
-cd "$(dirname "$0")"
+# Script'in bulunduğu dizinin bir üstüne git (proje kök dizini)
+cd "$(dirname "$0")/.."
 
 # ".env dosyasindaki ortam degiskenleri okunuyor..."
 set -a

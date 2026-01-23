@@ -1,0 +1,28 @@
+[project]
+name = "duyuru-bot"
+version = "0.8.0"
+description = "Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları Telegram kanalına gönderen Python botu"
+authors = [
+    {name = "Furkan Çelik"}
+]
+readme = "README.md"
+license = {text = "GPL-3.0"}
+requires-python = ">=3.13"
+keywords = ["telegram", "bot", "scraper", "announcement", "web-scraping", "apscheduler"]
+
+dependencies = [
+    "requests==2.31.0",
+    "beautifulsoup4==4.12.3",
+    "APScheduler==3.10.4",
+    "python-telegram-bot==20.7",
+    "lxml==5.3.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Furkan-Pasa/Duyuru-Bot"
+Repository = "https://github.com/Furkan-Pasa/Duyuru-Bot"
+Issues = "https://github.com/Furkan-Pasa/Duyuru-Bot/issues"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

@@ -6,7 +6,7 @@
 
 # root yetkisi kontrolü
 if [ "$EUID" -ne 0 ]; then
-  echo "Lütfen bu betiği 'sudo ./uninstall_service.sh' olarak çalıştırın."
+  echo "Lütfen bu betiği 'sudo ./linux_service_uninstall.sh' olarak çalıştırın."
   exit 1
 fi
 

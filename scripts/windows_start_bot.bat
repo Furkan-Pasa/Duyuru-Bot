@@ -1,6 +1,9 @@
 @echo off
 color a
 
+:: Scriptin calistigi klasorun bir ustune (proje kok dizinine) git
+pushd %~dp0..
+
 :: .env dosyasindaki ortam degiskenleri okunuyor...
 for /F "usebackq delims== tokens=1,*" %%a in (`findstr /v /c:"#" .env`) do (
     set "%%a=%%~b"

@@ -6,20 +6,22 @@
 
 # root yetkisi kontrolü
 if [ "$EUID" -ne 0 ]; then
-  echo "Lütfen bu betiği 'sudo ./install_service.sh' olarak çalıştırın."
+  echo "Lütfen bu betiği 'sudo ./linux_service_install.sh' olarak çalıştırın."
   exit 1
 fi
 
 # Değişkenleri otomatik ayarla
 SERVICE_NAME="duyuru-bot"
-# Betiğin çalıştığı dizini al
-PROJECT_PATH=$(pwd)
+# Betiğin çalıştığı dizinin bir üstünü (proje kökünü) al
+PROJECT_PATH=$(dirname "$(readlink -f "$0")")/..
+# Absolute path'e çevir
+PROJECT_PATH=$(readlink -f "$PROJECT_PATH")
 # Betiği 'sudo' ile çalıştıran kullanıcının adını al
 USER_NAME=$SUDO_USER
 # Kullanıcının birincil grubunu al
 GROUP_NAME=$(id -gn $USER_NAME)
 
-START_SCRIPT_PATH="$PROJECT_PATH/start_bot.sh"
+START_SCRIPT_PATH="$PROJECT_PATH/scripts/linux_start_bot.sh"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 
 echo "Servis kuruluyor: $SERVICE_NAME"
@@ -54,7 +56,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOF
 
-# start_bot.sh'e çalıştırma izni ver
+# linux_start_bot.sh'e çalıştırma izni ver
 chmod +x $START_SCRIPT_PATH
 
 # systemd'yi güncelle, servisi etkinleştir ve başlat
