@@ -33,7 +33,9 @@ Proje, **Windows**, **Linux** işletim sistemleriyle tam uyumludur. Kurulum sür
 
 ```bash
 cd /opt
-sudo mkdir duyuru-bot && cd duyuru-bot
+sudo mkdir duyuru-bot
+sudo chown $USER:$USER duyuru-bot
+cd duyuru-bot
 sudo git clone https://github.com/Furkan-Pasa/Duyuru-Bot .
 ```
 

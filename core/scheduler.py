@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
+import pytz
 
 import bot_config
 from core.database import Database
@@ -156,7 +157,9 @@ class DuyuruScheduler:
 
             # --- GÖREV 2: İLK ÇALIŞTIRMA (DATE) GÖREVİ ---
             # Bot başladıktan 'initial_run_delay_seconds' saniye sonra "bir kerelik" çalışır.
-            run_time = datetime.now() + timedelta(seconds=initial_run_delay_seconds)
+            # Türkiye saatine göre hesaplama yap
+            turkey_tz = pytz.timezone('Europe/Istanbul')
+            run_time = datetime.now(turkey_tz) + timedelta(seconds=initial_run_delay_seconds)
             
             self.scheduler.add_job(
                 self._run_check,
