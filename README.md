@@ -35,7 +35,6 @@ Proje, **Windows**, **Linux** işletim sistemleriyle tam uyumludur. Kurulum sür
 cd /opt
 sudo mkdir duyuru-bot && cd duyuru-bot
 sudo git clone https://github.com/Furkan-Pasa/Duyuru-Bot .
-
 ```
 
 - **Windows için:**
@@ -52,6 +51,8 @@ scripts\windows_install_requirements.bat
 sudo chmod +x scripts/linux_install_requirements.sh
 sudo ./scripts/linux_install_requirements.sh
 ```
+
+> **Not:** Kurulum scripti otomatik olarak gerekli dizinleri (`logs`, `data`) oluşturur ve dosya izinlerini ayarlar.
 
 ## ⚙️ Yapılandırma
 
@@ -91,8 +92,8 @@ Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını
 - **Linux/macOS için:**
 
 ```bash
-chmod +x scripts/linux_start_bot.sh
-./scripts/linux_start_bot.sh
+sudo chmod +x scripts/linux_start_bot.sh
+sudo ./scripts/linux_start_bot.sh
 ```
 
 Bu script, `.env` dosyasındaki değişkenleri yükler, `.venv` sanal ortamını aktive eder ve `python3 bot_main.py` komutunu çalıştırır.
