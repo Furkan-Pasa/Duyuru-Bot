@@ -6,6 +6,10 @@ bu dosyadan okunur, '.env' dosyasından gizli bilgileri yükler.
 """
 
 import os
+from dotenv import load_dotenv
+
+# .env dosyasını yükle
+load_dotenv()
 
 # ===================================================
 # TELEGRAM AYARLARI

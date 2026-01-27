@@ -32,8 +32,10 @@ Proje, **Windows**, **Linux** işletim sistemleriyle tam uyumludur. Kurulum sür
 1. Projeyi klonlayın:
 
 ```bash
-git clone https://github.com/Furkan-Pasa/Duyuru-Bot
-cd Duyuru-Bot
+cd /opt
+sudo mkdir duyuru-bot && cd duyuru-bot
+sudo git clone https://github.com/Furkan-Pasa/Duyuru-Bot .
+
 ```
 
 - **Windows için:**
@@ -47,8 +49,8 @@ scripts\windows_install_requirements.bat
 - **Linux/macOS için:**
 
 ```Bash
-chmod +x scripts/linux_install_requirements.sh
-./scripts/linux_install_requirements.sh
+sudo chmod +x scripts/linux_install_requirements.sh
+sudo ./scripts/linux_install_requirements.sh
 ```
 
 ## ⚙️ Yapılandırma
@@ -59,6 +61,11 @@ Botun çalışması için gizli anahtarlarınızı ve ayarlarınızı yapıland�
 
 - ".env.example" dosyasının adını ".env" olarak değiştirin.
 - ".env" dosyasını açın ve aşağıdaki değişkenleri doldurun:
+
+```Bash
+sudo nano .env
+```
+
   - `TELEGRAM_BOT_TOKEN` @BotFather'dan aldığınız token.
   - `CHANNEL1`, `CHANNEL2`: Bildirimlerin gönderileceği Telegram kanal ID'leri (genellikle -100... ile başlar).
 
