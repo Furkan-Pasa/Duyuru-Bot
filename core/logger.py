@@ -5,6 +5,7 @@ Bu modül, bot genelinde kullanılacak 'Singleton' bir logger (BotLogger) oluşt
 """
 
 import os
+import sys
 import logging
 import logging.handlers
 import bot_config
@@ -70,10 +71,18 @@ class BotLogger:
             '%(asctime)s | %(levelname)s | %(message)s',
             datefmt='%H:%M:%S'
         )
-        console_handler = logging.StreamHandler()
+        console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(console_format)
         self._logger.addHandler(console_handler)
+        
+        # APScheduler'ın kendi logger'ını da stdout'a yönlendir
+        apscheduler_logger = logging.getLogger('apscheduler')
+        apscheduler_logger.setLevel(logging.WARNING)
+        if not apscheduler_logger.handlers:
+            apscheduler_handler = logging.StreamHandler(sys.stdout)
+            apscheduler_handler.setFormatter(console_format)
+            apscheduler_logger.addHandler(apscheduler_handler)
         
         self._logger.info("=" * 60)
         self._logger.info("DUYURU BOT BAŞLATILDI")
