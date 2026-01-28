@@ -12,7 +12,12 @@ Sorumlulukları:
 import sys
 import signal
 import time
+import warnings
 from typing import Optional
+
+# tzlocal'in /etc/timezone deprecation uyarısını bastır
+warnings.filterwarnings('ignore', message='.*etc/timezone.*')
+
 from core.scheduler import DuyuruScheduler
 from core.logger import log_debug, log_info, log_error, log_critical, log_warning
 
