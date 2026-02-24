@@ -1,6 +1,6 @@
 [project]
 name = "duyuru-bot"
-version = "0.20.0"
+version = "0.20.2"
 description = "Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları Telegram kanalına gönderen Python botu"
 authors = [
     {name = "Furkan Çelik"}

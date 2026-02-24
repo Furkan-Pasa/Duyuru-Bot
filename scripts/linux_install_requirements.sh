@@ -67,5 +67,3 @@ echo "==================================================="
 echo -e "${GREEN}  KURULUM BASARIYLA TAMAMLANDI!${NC}"
 echo "==================================================="
 echo
-echo "Artık './scripts/linux_start_bot.sh' ile botu başlatabilirsiniz."
-echo
