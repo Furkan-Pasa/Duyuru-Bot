@@ -7,12 +7,10 @@ BŞEÜ'nün '.../arama/4' (Duyurular) formatındaki tüm siteleriyle uyumludur.
 (Örn: Bilgisayar Müh., Mühendislik Fak., SKS)
 """
 
-import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
 from urllib.parse import urljoin  # Göreceli linkleri tam linke çevirmek için
-import bot_config
 from .base_scraper import BaseScraper
 from core.logger import log_debug, log_info, log_warning, log_error 
 
@@ -41,16 +39,14 @@ class BSEU_Duyuru(BaseScraper):
         [IMPLEMENTS BaseScraper]
         Tek bir duyuru URL'ine giderek hash'lenecek ana içeriği (HTML) çeker.
         
+        `BaseScraper._fetch_url()` sayesinde retry desteği vardır.
+        
         1. 'icerik-govde' içindeki 'icerik-govde'yi (iç div) öncelikli arar.
         2. İçerik bulunamazsa (resim, yönlendirme vb.) 'None' döndürür.
         """
         try:
-            time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
             log_debug(f"🌐 [{self.name}] Duyuru İçeriği çekiliyor: {url}")
-            response = self.session.get(url, timeout=bot_config.REQUEST_TIMEOUT)
-
-            response.raise_for_status()
-            response.encoding = response.apparent_encoding
+            response = self._fetch_url(url)
             
             soup = BeautifulSoup(response.text, 'lxml')
             
@@ -70,8 +66,7 @@ class BSEU_Duyuru(BaseScraper):
             return None
 
         except Exception as e:
-            log_error(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}")
-            log_error(f"❌ [{self.name}] {e}")
+            log_error(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}, hata: {e}", exc_info=True)
             return None
         
 

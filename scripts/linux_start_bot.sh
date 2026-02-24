@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Script'in bulunduğu dizinin bir üstüne git (proje kök dizini)
 cd "$(dirname "$0")/.."

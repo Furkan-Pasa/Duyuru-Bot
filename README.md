@@ -12,10 +12,11 @@ Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları bi
 
 ## Temel Özellikler
 
-- **Periyodik Kontrol:** `APScheduler` kullanarak zamanlanmış (cron) görevler ile siteleri otomatik olarak kontrol eder.
+- **Periyodik Kontrol:** `APScheduler` kullanarak zamanlanmış (cron) görevler ile siteleri otomatik olarak kontrol eder. Sunucunun yerel zaman dilimini kullanır.
 - **Asenkron Bildirimler:** `python-telegram-bot` kütüphanesini ayrı bir `asyncio` event loop'unda (farklı bir thread'de) çalıştırarak ana scraper thread'lerini bloklamadan yüksek performanslı bildirim gönderir.
 - **Thread-Safe Veritabanı:** `APScheduler`'ın her görev (scraper) için farklı thread'ler kullanma olasılığına karşı, `threading.local()` kullanarak her thread'in kendi izole SQLite bağlantısını yönetmesini sağlar. Bu, "database is locked" hatalarını engeller.
 - **Akıllı Kontrol:** Sadece yeni duyuruları değil, mevcut duyuruların başlık veya içeriklerinde yapılan _güncellemeleri_ de tespit eder ve bildirir.
+- **Retry Mekanizması:** Tüm HTTP istekleri (sayfa listesi ve duyuru içeriği) için ortak retry mantığı ile geçici ağ hatalarına karşı dayanıklıdır.
 - **Optimizasyon:** Sunucuya gereksiz yük bindirmemek için, normal kontrollerde sadece en yeni N duyurunun içeriğini (hash) kontrol eder (`NORMAL_RUN_UPDATE_CHECK_LIMIT`).
 - **"İlk Çalıştırma" Mantığı:** Bot veritabanı boşken ilk kez çalıştığında, kanalı eski duyurularla spamlememek için sadece en yeni 1 duyuruyu gönderir (`FIRST_RUN_SEND_LIMIT`).
 - **Genişletilebilir Mimari:** `BaseScraper` soyut sınıfı sayesinde, farklı HTML yapılarına sahip yeni üniversite sitelerini eklemek son derece kolaydır.
@@ -122,7 +123,7 @@ PM2, uygulamanızı yöneten, bellek optimizasyonu yapan ve çökme durumunda ot
     pm2 start ecosystem.config.js
     ```
 
-    > `ecosystem.config.js` yapılandırması sayesinde bot, maksimum 300MB bellek kullanacak şekilde ve otomatik restart özelliğiyle açılır.
+    > `ecosystem.config.js` yapılandırması sayesinde bot, maksimum 300MB bellek kullanacak şekilde ve otomatik restart özelliğiyle açılır. PM2 çıktı logları devre dışıdır (bot kendi loglama sistemini kullanır), sadece hata logları `logs/pm2/` altında tutulur.
 
 3.  **Yararlı Komutlar:**
 
@@ -147,6 +148,20 @@ PM2, uygulamanızı yöneten, bellek optimizasyonu yapan ve çökme durumunda ot
 
     # 3. Son olarak mevcut listeyi kaydedin:
     pm2 save
+    ```
+
+5.  **Log Rotation Ayarı:**
+    PM2 loglarının büyümesini önlemek için `pm2-logrotate` eklentisini kurun:
+
+    ```bash
+    pm2 install pm2-logrotate
+
+    # Haftalık döndür (her Pazar gece yarısı)
+    pm2 set pm2-logrotate:rotateInterval '0 0 * * 0'
+    # 4 haftalık log dosyası sakla
+    pm2 set pm2-logrotate:retain 4
+    # Eski logları sıkıştır
+    pm2 set pm2-logrotate:compress true
     ```
 
 ---
@@ -191,7 +206,7 @@ Harici bir araç (npm/pm2) kurmak istemiyorsanız, Linux'un yerleşik servis yö
 
 - `core/telegram_bot.py`: `APScheduler` (sync) ile `python-telegram-bot` (async) arasında bir köprü kurar. Kendi thread'inde bir `asyncio` event loop'u çalıştırır.
 
-- `scrapers/base_scraper.py`: Tüm scraper'lar için ortak mantığı (hata denemesi, `requests.Session` yönetimi) içeren soyut (abstract) bir ana sınıftır.
+- `scrapers/base_scraper.py`: Tüm scraper'lar için ortak mantığı (retry mekanizması, `requests.Session` yönetimi) içeren soyut (abstract) bir ana sınıftır.
 
 - `scrapers/Scraper_BSEU.py`: BaseScraper'ı miras alarak siteye özel HTML parse etme (kazıma) mantığını uygular.
 

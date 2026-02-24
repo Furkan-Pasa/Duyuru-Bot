@@ -100,7 +100,8 @@ class TelegramNotifier:
         if date:
             message += f"📅 <i>{self._escape_html(date)}</i>\n\n"
         if url:
-            message += f"🔗 <a href='{url}'>Duyuruyu Aç</a>\n"
+            safe_url = url.replace("'", "%27")
+            message += f"🔗 <a href='{safe_url}'>Duyuruyu Aç</a>\n"
         message += "\n━━━━━━━━━━━━━━━━━"
         return message
 
@@ -150,7 +151,7 @@ def start_telegram_loop():
         if _loop_ready.is_set():
             log_info("✅ Telegram | Async event loop başlatıldı.")
         else:
-            log_error("❌ Telegram | Async event loop başlatılamadı (Timeout).")
+            raise RuntimeError("Telegram async loop başlatılamadı! Bot durduruluyor.")
 
 def stop_telegram_loop():
     """
@@ -180,10 +181,13 @@ def send_to_telegram(channel_id: str, site_name: str, announcement: Dict, messag
         future: Future = asyncio.run_coroutine_threadsafe(coro, _loop)
 
         # 3. Bu sync thread'de, o async görevin bitmesini bekle
-        # (Bu, eski asyncio.run() maliyetinden ÇOK daha hızlıdır)
         result = future.result(timeout=45)
         return result
 
+    except TimeoutError:
+        future.cancel()  # Arka planda kalan coroutine'i iptal et
+        log_critical(f"🚨 [{site_name}] Telegram gönderimi zaman aşımına uğradı (45s)")
+        return False
     except Exception as e:
         log_critical(f"🚨 [{site_name}] send_to_telegram (threadsafe) hatası: {e}")
         return False

@@ -27,13 +27,6 @@ if not TELEGRAM_BOT_TOKEN:
 # ===================================================
 SITES = [
     {
-        # 'url':                 Kontrol edilecek sayfanın URL'si
-        # 'name':                Log'larda görünecek benzersiz isim
-        # 'scraper_path':        Bu siteyi kazıyacak sınıfın yolu (paket.modul.SinifAdi)
-        # 'telegram_channel_id': Duyurunun gönderileceği kanal ID'si (örn: os.getenv("CHANNEL1"))
-        # 'schedule_minutes':    Her saat başı hangi dakikalarda çalışsın (Cron formatı)
-        # 'enabled':             Bu site aktif mi? (True/False)
-        
         'url': 'https://www.bilecik.edu.tr/bilgisayar/arama/4',
         'name': 'BŞEÜ Bilgisayar Müh.',
         'scraper_path': 'scrapers.Scraper_BSEU.BSEU_Duyuru',
@@ -57,23 +50,21 @@ SITES = [
         'schedule_minutes': ['25', '55'],
         'enabled': True
     },
-    {
-        'url': '',
-        'name': '',
-        'scraper_path': '',
-        'telegram_channel_id': os.getenv(""),
-        'schedule_minutes': ['00', '00'],
-        'enabled': False
-    },
-    {
-        'url': '',
-        'name': '',
-        'scraper_path': '',
-        'telegram_channel_id': os.getenv(""),
-        'schedule_minutes': ['00', '00'],
-        'enabled': False
-    }
+    # Yeni site eklemek için aşağıdaki şablonu kopyalayıp doldurun:
+    # {
+    #     'url': 'https://...',
+    #     'name': 'Site Adı',
+    #     'scraper_path': 'scrapers.Scraper_XXX.XXX_Duyuru',
+    #     'telegram_channel_id': os.getenv("CHANNEL_X"),
+    #     'schedule_minutes': ['00', '30'],
+    #     'enabled': True
+    # },
 ]
+
+# Aktif sitelerin channel_id kontrolü
+for _site in SITES:
+    if _site.get('enabled') and not _site.get('telegram_channel_id'):
+        raise ValueError(f"'{_site['name']}' için 'telegram_channel_id' bulunamadı! .env dosyasını kontrol et.")
 
 # ===================================================
 # SQLite VERİTABANI AYARLARI

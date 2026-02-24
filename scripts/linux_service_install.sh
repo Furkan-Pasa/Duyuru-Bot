@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # =========================================
 # Duyuru-Bot systemd Servis Kurulum Betiği

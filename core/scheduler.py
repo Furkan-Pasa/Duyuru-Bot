@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
-import pytz
 
 import bot_config
 from core.database import Database
@@ -67,7 +66,7 @@ class DuyuruScheduler:
         Async Telegram loop'unu (ayrı thread'de) başlatır.
         """
         log_debug("⏳ Scheduler başlatılıyor...")
-        self.scheduler = BackgroundScheduler(timezone="Europe/Istanbul")
+        self.scheduler = BackgroundScheduler()  # Sunucunun yerel zaman dilimini kullanır
         self.db = Database()
         
         # Async işlemleri yönetecek arkaplan thread'ini başlat
@@ -130,7 +129,7 @@ class DuyuruScheduler:
         2. `date`: Bot başlar başlamaz "bir kerelik" çalışır. (Staggered)
         """
         if not self.scrapers:
-            log_warning("⚠️ Scheduler | Hiç aktif scraper bulunamadı. Lütfen config.py dosyasını kontrol edin.")
+            log_warning("⚠️ Scheduler | Hiç aktif scraper bulunamadı. Lütfen bot_config.py dosyasını kontrol edin.")
             return
 
         log_info("⏰ Scheduler | Zamanlayıcı görevleri ayarlanıyor...")
@@ -157,9 +156,8 @@ class DuyuruScheduler:
 
             # --- GÖREV 2: İLK ÇALIŞTIRMA (DATE) GÖREVİ ---
             # Bot başladıktan 'initial_run_delay_seconds' saniye sonra "bir kerelik" çalışır.
-            # Türkiye saatine göre hesaplama yap
-            turkey_tz = pytz.timezone('Europe/Istanbul')
-            run_time = datetime.now(turkey_tz) + timedelta(seconds=initial_run_delay_seconds)
+            # Sunucunun yerel saatine göre hesaplama yap
+            run_time = datetime.now() + timedelta(seconds=initial_run_delay_seconds)
             
             self.scheduler.add_job(
                 self._run_check,
@@ -177,15 +175,11 @@ class DuyuruScheduler:
         self.scheduler.start()
         log_info("⏳ Scheduler | Zamanlayıcı BAŞLATILDI. Görevler arkaplanda çalışacak.")
 
-    def shutdown(self, from_start_loop: bool = False):
+    def shutdown(self):
         """
         Scheduler'ı ve kaynakları (DB, session'lar, async loop) güvenli bir şekilde kapatır.
         
-        `main.py`'deki signal_handler (CTRL+C) tarafından çağrılır.
-        
-        Args:
-            from_start_loop (bool): Kapatmanın `main.py`'deki ana döngüden
-                                    gelip gelmediğini belirtir (normalde False).
+        `bot_main.py`'deki signal_handler (CTRL+C) tarafından çağrılır.
         """
         log_debug("⏳ Scheduler | Güvenli kapatma başlatıldı...")
         
@@ -215,11 +209,6 @@ class DuyuruScheduler:
                 log_error(f"🛑 [{site_name}] scraper session kapatılırken hata: {e}")
                 
         log_info("🔒 Scheduler | Tüm kaynaklar serbest bırakıldı. Kapatıldı.")
-        
-        # Eğer bu çağrı main.py'den (signal_handler) geliyorsa, main.py'deki sys.exit() kapatmayı tamamlayacaktır.
-        if from_start_loop:
-            import sys
-            sys.exit(0)
                     
     def _run_check(self, site_name: str, scraper: BaseScraper, site_config: Dict):
         """
@@ -229,7 +218,6 @@ class DuyuruScheduler:
         2. DB'de bu site için kayıt olup olmadığını kontrol eder.
         3. DB boşsa (`total_in_db == 0`): `_process_first_run`'ı çalıştırır.
         4. DB doluysa: `_process_normal_run`'ı çalıştırır.
-        5. Sonucu 'stats' tablosuna kaydeder.
         """
         log_scraper_start(site_name)
         new_count = 0
@@ -282,22 +270,28 @@ class DuyuruScheduler:
         
         log_info(f"✨ [{scraper.name}] Sayfada {total_found} duyuru bulundu. Sadece en yeni {total_to_save} tanesi DB'ye ekleniyor...")
         
+        saved_announcements = []
+        
         for ann in announcements_to_save:
             try:
                 # content_text ham HTML veya None olabilir
                 content_text = scraper.fetch_announcement_content(ann['url'])
                 ann['content'] = content_text
-                self.db.save_announcement(scraper.name, ann)
             except Exception as e:
-                log_error(f"❌ [{scraper.name}] (İlk Çalıştırma) Kaydetme/Çekme hatası: {e} - URL: {ann['url']}")
+                log_error(f"❌ [{scraper.name}] (İlk Çalıştırma) İçerik çekme hatası: {e} - URL: {ann['url']}")
+                ann['content'] = None  # İçerik çekilemese de başlık hash'i ile kaydet
+            
+            # İçerik başarılı veya başarısız, her durumda DB'ye kaydet
+            if self.db.save_announcement(scraper.name, ann):
+                saved_announcements.append(ann)
                 
-        log_info(f"✨ [{scraper.name}]: Toplam {total_to_save} duyuru DB'ye eklendi. En son {limit_to_send} tanesi gönderiliyor.")
+        log_info(f"✨ [{scraper.name}]: {len(saved_announcements)}/{total_to_save} duyuru DB'ye eklendi. En son {limit_to_send} tanesi gönderiliyor.")
         
         sent_count = 0
     
-        # Gönderilecekler, 'announcements_to_save' listesinin içinden ilk 'limit_to_send' kadar olmalı
+        # Sadece başarıyla kaydedilen duyuruları gönder
         # reversed() kullanıyoruz ki (eğer 1'den fazla gönderilecekse) eskiden yeniye gitsin.
-        for ann in reversed(announcements_to_save[:limit_to_send]):
+        for ann in reversed(saved_announcements[:limit_to_send]):
             send_to_telegram(
                 channel_id=site_config['telegram_channel_id'],
                 site_name=scraper.name,
@@ -447,7 +441,7 @@ class DuyuruScheduler:
                     update_found = True
                     
             except Exception as e:
-                log_debug(f"❌ [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerikten birisi çekilemedi: {ann['url']}")
+                log_warning(f"⚠️ [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerikten birisi çekilemedi: {ann['url']}, hata: {e}")
 
         # 3. Güncelleme BAŞLIKTA bulunduysa, ama 'is_recent' olmadığı için
         # içerik henüz çekilmediyse, Telegram'a göndermek için içeriği şimdi çek.

@@ -64,18 +64,22 @@ class BaseScraper(ABC):
 
         return session
 
-    def fetch_page(self) -> BeautifulSoup:
+    def _fetch_url(self, url: str) -> requests.Response:
         """
-        Ana duyuru listesi sayfasının HTML'ini çeker ve 'soup' döndürür.
+        Retry mantığı olan ortak HTTP GET helper'ı.
 
+        Tüm HTTP istekleri (sayfa listesi, duyuru içeriği) bu metodu kullanır.
         `bot_config`'deki 'MAX_RETRIES' ve 'RETRY_DELAY' ayarlarına göre
         hata durumunda (Timeout, ConnectionError, HTTPError) yeniden dener.
-        
+
+        Args:
+            url: Çekilecek URL.
+
         Returns:
-            BeautifulSoup: Parse edilmiş HTML nesnesi.
-            
+            requests.Response: Başarılı HTTP yanıtı (encoding düzeltilmiş).
+
         Raises:
-            Exception: HTTP 4xx/5xx hatası veya max_retries aşıldığında.
+            Exception: Max retry aşıldığında veya yeniden denenemez hata durumunda.
         """
         retries = 0
 
@@ -83,12 +87,8 @@ class BaseScraper(ABC):
             try:
                 # Güvenlik duvarına takılmamak için gecikme
                 time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
-                
-                log_debug(f"🌐 [{self.name}] Sayfa çekiliyor... ({self.url})")
 
-                response = self.session.get(
-                    self.url, timeout=bot_config.REQUEST_TIMEOUT
-                )
+                response = self.session.get(url, timeout=bot_config.REQUEST_TIMEOUT)
 
                 # HTTP 4xx veya 5xx hata kodları için (örn: 404, 500)
                 response.raise_for_status()
@@ -96,26 +96,45 @@ class BaseScraper(ABC):
                 # Encoding kontrolü (Türkçe karakter sorunları için)
                 response.encoding = response.apparent_encoding
 
-                # lxml parser ile parse et (hızlı)
-                soup = BeautifulSoup(response.text, "lxml")
-
-                log_debug(f"✅ {self.name}: Sayfa başarıyla çekildi")
-                return soup
+                return response
 
             # Yeniden denenebilir hatalar (Timeout, Bağlantı, HTTP Hataları)
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
                 retries += 1
-                log_warning(f"⚠️ [{self.name}] Sayfa çekme hatası ({e.__class__.__name__}). Tekrar deneniyor... ({retries}/{bot_config.MAX_RETRIES})")
-                time.sleep(bot_config.RETRY_DELAY)
+                log_warning(f"⚠️ [{self.name}] HTTP hatası ({e.__class__.__name__}). Retry {retries}/{bot_config.MAX_RETRIES}: {url}")
+                if retries < bot_config.MAX_RETRIES:
+                    time.sleep(bot_config.RETRY_DELAY)
 
             except Exception as e:
                 # Diğer beklenmeyen (yeniden denenemez) hatalar
-                log_error(f"❌ [{self.name}] Sayfa çekilirken beklenmeyen hata: {e}", exc_info=True)
-                raise # Bu hatayı yeniden fırlat, scrape() yakalasın
+                log_error(f"❌ [{self.name}] Beklenmeyen HTTP hatası: {url}, hata: {e}", exc_info=True)
+                raise
 
         # While döngüsü bittiyse (retries aşıldı)
-        log_scraper_error(self.name, Exception(f"{bot_config.MAX_RETRIES} deneme sonrası sayfa çekilemedi!"))
-        raise Exception(f"{self.name}: {bot_config.MAX_RETRIES} deneme sonrası sayfa çekilemedi!")
+        raise Exception(f"{self.name}: {bot_config.MAX_RETRIES} deneme sonrası URL çekilemedi: {url}")
+
+    def fetch_page(self) -> BeautifulSoup:
+        """
+        Ana duyuru listesi sayfasının HTML'ini çeker ve 'soup' döndürür.
+
+        `_fetch_url` ile retry destekli olarak sayfayı çeker,
+        ardından BeautifulSoup ile parse eder.
+
+        Returns:
+            BeautifulSoup: Parse edilmiş HTML nesnesi.
+
+        Raises:
+            Exception: HTTP hatası veya max_retries aşıldığında.
+        """
+        log_debug(f"🌐 [{self.name}] Sayfa çekiliyor... ({self.url})")
+
+        response = self._fetch_url(self.url)
+
+        # lxml parser ile parse et (hızlı)
+        soup = BeautifulSoup(response.text, "lxml")
+
+        log_debug(f"✅ {self.name}: Sayfa başarıyla çekildi")
+        return soup
     
     @abstractmethod
     def parse_announcements(self, soup: BeautifulSoup) -> List[Dict]:

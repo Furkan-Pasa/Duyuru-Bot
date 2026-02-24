@@ -58,8 +58,8 @@ echo "---------------------------------------------------"
 
 echo
 echo "[5/6] Gerekli dizinler olusturuluyor..."
-# logs ve data dizinlerini oluştur
-mkdir -p logs
+# logs, logs/pm2 ve data dizinlerini oluştur
+mkdir -p logs/pm2
 mkdir -p data
 
 echo
@@ -81,5 +81,5 @@ echo "==================================================="
 echo -e "${GREEN}  KURULUM BASARIYLA TAMAMLANDI!${NC}"
 echo "==================================================="
 echo
-echo "Artık 'sudo ./scripts/linux_start_bot.sh' ile botu başlatabilirsiniz."
+echo "Artık './scripts/linux_start_bot.sh' ile botu başlatabilirsiniz."
 echo

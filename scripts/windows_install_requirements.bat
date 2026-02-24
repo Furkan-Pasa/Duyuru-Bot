@@ -5,7 +5,7 @@ echo   DUYURU-BOT KURULUM SCRIPTINE HOS GELDINIZ
 echo ===================================================
 echo.
 
-echo [1/4] Python sanal ortami (.venv) olusturuluyor...
+echo [1/5] Python sanal ortami (.venv) olusturuluyor...
 
 :: Scriptin calistigi klasorun bir ustune (proje kok dizinine) git
 pushd %~dp0..
@@ -31,11 +31,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [2/4] Sanal ortam aktive ediliyor...
+echo [2/5] Sanal ortam aktive ediliyor...
 call .\.venv\Scripts\activate.bat
 
 echo.
-echo [3/4] Gereksinimler yukleniyor...
+echo [3/5] Gereksinimler yukleniyor...
 echo ---------------------------------------------------
 pip install -r requirements.txt
 if %errorlevel% neq 0 (
@@ -49,7 +49,14 @@ if %errorlevel% neq 0 (
 )
 echo ---------------------------------------------------
 
+echo.
+echo [4/5] Gerekli dizinler olusturuluyor...
+if not exist "logs" mkdir logs
+if not exist "data" mkdir data
+
 :: Basarili Bitis
+echo.
+echo [5/5] Tamamlandi!
 echo.
 echo ===================================================
 powershell -Command "Write-Host '  KURULUM BASARIYLA TAMAMLANDI!' -ForegroundColor Green"

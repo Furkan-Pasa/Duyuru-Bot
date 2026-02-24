@@ -22,7 +22,6 @@ class Database:
         """Veritabanı yolunu ayarlar ve tabloları oluşturur/kontrol eder."""
         self.db_path = bot_config.DATABASE_PATH
         self.local_storage = threading.local()  # Thread-local depolama
-        self._closed = False  # Kapatma sinyali için
 
         # Veritabanı dosyasının bulunduğu 'data' klasörünü kontrol et
         db_dir = os.path.dirname(self.db_path)
@@ -279,14 +278,11 @@ class Database:
         """
         Thread'e özel veritabanı bağlantısını kapatır.
         
-        (Ana scheduler shutdown'da çağrılır, ancak thread-local olduğu için
-        aslında her thread'in kendi 'close'unu çağırması gerekir.
+        Thread-local olduğu için her thread kendi bağlantısını kapatır.
+        Aynı thread'den birden fazla çağrılması güvenlidir (hasattr kontrolü).
         """
-        if self._closed:
-            return
-        
         # Sadece bu thread'e ait bağlantı varsa kapat
         if hasattr(self.local_storage, 'conn'):
             self.local_storage.conn.close()
+            del self.local_storage.conn
             log_info(f"🔒 DB Bağlantısı (Thread: {threading.current_thread().name}) kapatıldı.")
-            self._closed = True

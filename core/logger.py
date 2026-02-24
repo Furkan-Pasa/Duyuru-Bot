@@ -158,7 +158,7 @@ def log_scraper_error(site_name: str, error: Exception):
 # core/telegram_bot.py
 def log_telegram_sent(site_name: str, title: str):
     """Bir duyurunun Telegram'a başarıyla gönderildiğini (INFO) loglar."""
-    logger.info(f"📨 [{site_name}] Yeni duyuru Telegram'a gönderildi: {title[:5]}...")
+    logger.info(f"📨 [{site_name}] Yeni duyuru Telegram'a gönderildi: {title[:15]}...")
 
 def log_telegram_error(site_name: str, error: str):
     """Telegram'a gönderim sırasında hata alındığını (ERROR) loglar."""
