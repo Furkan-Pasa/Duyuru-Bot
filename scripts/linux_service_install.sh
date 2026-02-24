@@ -31,7 +31,7 @@ echo "Proje Yolu: $PROJECT_PATH"
 
 # Eğer servis zaten varsa, önce durdur
 echo "Mevcut servis (varsa) durduruluyor..."
-systemctl stop $SERVICE_NAME.service > /dev/null 2>&1
+systemctl stop $SERVICE_NAME.service > /dev/null 2>&1 || true
 
 # systemd servis dosyasını oluşturmak için HEREDOC kullan
 # 'EOF' tırnak içinde OLMAMALI ki $USER_NAME gibi değişkenler çalışsın
