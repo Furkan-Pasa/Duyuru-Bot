@@ -178,7 +178,12 @@ class BaseScraper(ABC):
 
         Returns:
             Optional[str]: Hash'lenecek içerik (genellikle ham HTML string'i).
-                          İçerik çekilemezse None döner.
+                          Sayfa geldi ama içerik bulunamadıysa None döner.
+
+        Raises:
+            Exception: Sayfa çekilemezse (ağ/HTTP hatası) exception
+                       FIRLATILMALIDIR, None döndürülmemelidir. Scheduler,
+                       "içerik yok" ile "çekilemedi" durumlarını bu sayede ayırır.
         """
         pass
 

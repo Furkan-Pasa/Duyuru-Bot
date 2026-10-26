@@ -14,7 +14,7 @@ Bu modül, `DuyuruScheduler` sınıfını içerir. Bu sınıfın sorumlulukları
 
 import importlib
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -55,6 +55,13 @@ def import_from_string(path: str):
     except AttributeError:
         log_error(f"❌ '{module_path}' modülünde '{class_name}' sınıfı bulunamadı.")
         raise
+
+class UpdateCheckResult(NamedTuple):
+    """`_check_announcement_update` sonucu."""
+    is_updated: bool             # Telegram'a "güncellendi" bildirimi gönderilecek mi?
+    needs_save: bool             # DB'ye yazılacak mı? (bildirimsiz referans kaydı dahil)
+    content_hash: str            # DB'ye yazılacak hash
+    raw_content: Optional[str]   # DB'ye yazılacak ham HTML (veya None)
 
 class DuyuruScheduler:
     """
@@ -374,26 +381,20 @@ class DuyuruScheduler:
                 
                 # Optimizasyon: Sadece sayfadaki "en yeni Y" duyurunun içeriğini kontrol et
                 is_recent = (index >= total_being_checked - recent_announcements_limit)
-                is_updated, updated_content = self._check_announcement_update(scraper, ann, db_record, is_recent)
+                check = self._check_announcement_update(scraper, ann, db_record, is_recent)
                 
-                if is_updated:
-                    ann['content'] = updated_content # Mesaj için içeriği (None veya str) ekle
-                    
-                    # DB'deki hash'i güncelle
-                    new_hash = self.db.generate_hash(
-                        updated_content, 
-                        fallback_text=ann['title']
-                    )
-                    
-                    # DB'yi (hem hash hem raw_content ile) güncelle
+                # DB'yi güncelle (bildirimli güncelleme VEYA sessiz referans kaydı)
+                if check.needs_save:
                     self.db.update_announcement(
                         site_name=site_name, 
                         announcement_id=ann_id, 
                         new_title=ann['title'], 
-                        new_hash=new_hash,
-                        new_raw_content=updated_content # Bu None veya ham HTML olabilir
+                        new_hash=check.content_hash,
+                        new_raw_content=check.raw_content # Bu None veya ham HTML olabilir
                     )
-                    
+                
+                if check.is_updated:
+                    ann['content'] = check.raw_content # Mesaj için içeriği (None veya str) ekle
                     send_to_telegram(
                         channel_id=site_config['telegram_channel_id'],
                         site_name=site_name,
@@ -404,53 +405,68 @@ class DuyuruScheduler:
                     
         return new_announcements_count, updated_announcements_count    
 
-    def _check_announcement_update(self, scraper: BaseScraper, ann: Dict, db_record: Dict, is_recent: bool) -> Tuple[bool, Optional[str]]:
+    def _check_announcement_update(self, scraper: BaseScraper, ann: Dict, db_record: Dict, is_recent: bool) -> UpdateCheckResult:
         """
         Bir duyurunun başlığının veya içeriğinin güncellenip güncellenmediğini kontrol eder.
         
         Optimizasyon: 
-        İçerik (hash) kontrolü sadece 'is_recent' (örn: son X) ise yapılır. 
-        Başlık kontrolü her zaman yapılır.
+        İçerik (hash) kontrolü sadece 'is_recent' (örn: son X) ise veya başlık
+        değiştiyse yapılır. Başlık kontrolü her zaman yapılır.
+        
+        İçerik açısından yalnızca "mevcut içerik -> farklı içerik" değişimi
+        güncelleme sayılır:
+        - İçerik çekilemezse (ağ hatası): içerik kontrolü atlanır, DB'deki
+          hash/içerik korunur.
+        - DB'de içerik yok, şimdi geldi: sessizce referans olarak kaydedilir
+          (önceki çekim başarısız olmuş olabilir), bildirim gönderilmez.
+        - DB'de içerik var, şimdi 'icerik-govde' bulunamadı: geçici/hatalı sayfa
+          olabilir, önceki içerik korunur, bildirim gönderilmez.
         
         Returns: 
-            (bool: Güncelleme bulundu mu?, Optional[str]: Çekilen içerik (eğer çekildiyse veya None))
+            UpdateCheckResult (bildirim gerekip gerekmediği ve DB'ye yazılacak değerler).
         """
         new_title = ann['title']
-        content_text: Optional[str] = None
-        update_found = False
+        old_hash = db_record['content_hash']
+        old_raw = db_record.get('raw_content')
+        
+        # Varsayılan: DB'deki mevcut değerleri koru
+        final_hash, final_raw = old_hash, old_raw
+        content_changed = False
+        baseline_only = False
 
         # 1. Başlık kontrolü (Her zaman, HTTP isteği gerekmez)
-        if new_title != db_record['title']:
+        title_changed = new_title != db_record['title']
+        if title_changed:
             log_info(f"🔄 [{scraper.name}] BAŞLIK GÜNCELLENDİ: {ann['id']}")
-            update_found = True
         
-        # 2. "Son X" kuralı: Sadece son X ise İÇERİK kontrolü yap (HTTP isteği)
-        if is_recent:
+        # 2. İçerik kontrolü: Sadece "son X" ise veya başlık değiştiyse (HTTP isteği)
+        if is_recent or title_changed:
             try:
-                log_debug(f"🌐 [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerik kontrolü yapılıyor: {ann['id']}")
-                content_text = scraper.fetch_announcement_content(ann['url'])
-                
-                # İçerik None ise başlığı fallback olarak kullanarak hash'le
-                new_hash = self.db.generate_hash(
-                    content_text,
-                    fallback_text=new_title # Başlığın yenisini kullan
-                )
-                
-                if new_hash != db_record['content_hash']:
-                    log_info(f"🔄 [{scraper.name}] İÇERİK GÜNCELLENDİ: {ann['id']}")    
-                    update_found = True
-                    
-            except Exception as e:
-                log_warning(f"⚠️ [{scraper.name}] (Son {bot_config.NORMAL_RUN_UPDATE_CHECK_LIMIT}) İçerikten birisi çekilemedi: {ann['url']}, hata: {e}")
-
-        # 3. Güncelleme BAŞLIKTA bulunduysa, ama 'is_recent' olmadığı için
-        # içerik henüz çekilmediyse, Telegram'a göndermek için içeriği şimdi çek.
-        if update_found and content_text is None and not is_recent:
-            try:
-                log_debug(f"🌐 [{scraper.name}] (Başlık günc.) İçerik çekiliyor: {ann['id']}")
+                log_debug(f"🌐 [{scraper.name}] İçerik kontrolü yapılıyor: {ann['id']}")
                 content_text = scraper.fetch_announcement_content(ann['url'])
             except Exception as e:
-                log_error(f"🛑 [{scraper.name}] (Başlık Günc.) İçerik çekilemedi: {ann['url']}, hata: {e}")
-                content_text = None  # Hata durumunda None
+                # İçerik çekilemedi: karşılaştırma yapılmaz, mevcut değerler korunur
+                log_warning(f"⚠️ [{scraper.name}] İçerik çekilemedi, içerik kontrolü atlanıyor: {ann['url']}, hata: {e}")
+            else:
+                if content_text is None:
+                    # Sayfa geldi ama içerik div'i yok
+                    if old_raw:
+                        log_warning(f"⚠️ [{scraper.name}] İçerik bulunamadı (önceden vardı), önceki içerik korunuyor: {ann['id']}")
+                else:
+                    new_hash = self.db.generate_hash(content_text)
+                    if not old_raw:
+                        # DB'de karşılaştırılacak içerik yok: bildirimsiz referans kaydı
+                        log_debug(f"📝 [{scraper.name}] İçerik ilk kez alındı, referans olarak kaydediliyor (bildirimsiz): {ann['id']}")
+                        baseline_only = True
+                    elif new_hash != old_hash:
+                        log_info(f"🔄 [{scraper.name}] İÇERİK GÜNCELLENDİ: {ann['id']}")
+                        content_changed = True
+                    final_hash, final_raw = new_hash, content_text
         
-        return update_found, content_text
+        is_updated = title_changed or content_changed
+        return UpdateCheckResult(
+            is_updated=is_updated,
+            needs_save=is_updated or baseline_only,
+            content_hash=final_hash,
+            raw_content=final_raw,
+        )

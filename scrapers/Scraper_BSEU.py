@@ -43,31 +43,30 @@ class BSEU_Duyuru(BaseScraper):
         
         1. 'icerik-govde' içindeki 'icerik-govde'yi (iç div) öncelikli arar.
         2. İçerik bulunamazsa (resim, yönlendirme vb.) 'None' döndürür.
+        
+        Ağ/HTTP hataları burada yakalanmaz, çağırana (scheduler) iletilir.
+        Böylece "içerik yok" (None) ile "içerik çekilemedi" (exception)
+        durumları birbirinden ayrılabilir.
         """
-        try:
-            log_debug(f"🌐 [{self.name}] Duyuru İçeriği çekiliyor: {url}")
-            response = self._fetch_url(url)
-            
-            soup = BeautifulSoup(response.text, 'lxml')
-            
-            # 1. Önce iç-içe (spesifik) olan div'i ara
-            content_div = soup.select_one('div.icerik-govde div.icerik-govde')
-            if content_div:
-                return str(content_div)
-            
-            # 2. Bulamazsa, ana (dış) 'icerik-govde' div'ini ara
-            log_debug(f"⚠️ [{self.name}] İç-içe 'icerik-govde' bulunamadı. Ana 'icerik-govde' aranacak: {url}")
-            content_div = soup.find('div', class_='icerik-govde')
-            if content_div:
-                return str(content_div)
-            
-            # 3. O da bulunamazsa None döndür.
-            log_debug(f"⚠️ [{self.name}] 'icerik-govde' bulunamadı. Hash için başlık kullanılacak. URL: {url}")
-            return None
-
-        except Exception as e:
-            log_error(f"❌ [{self.name}] Duyuru içeriği çekilirken hata: {url}, hata: {e}", exc_info=True)
-            return None
+        log_debug(f"🌐 [{self.name}] Duyuru İçeriği çekiliyor: {url}")
+        response = self._fetch_url(url)  # Hata durumunda exception fırlatır
+        
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # 1. Önce iç-içe (spesifik) olan div'i ara
+        content_div = soup.select_one('div.icerik-govde div.icerik-govde')
+        if content_div:
+            return str(content_div)
+        
+        # 2. Bulamazsa, ana (dış) 'icerik-govde' div'ini ara
+        log_debug(f"⚠️ [{self.name}] İç-içe 'icerik-govde' bulunamadı. Ana 'icerik-govde' aranacak: {url}")
+        content_div = soup.find('div', class_='icerik-govde')
+        if content_div:
+            return str(content_div)
+        
+        # 3. O da bulunamazsa None döndür.
+        log_debug(f"⚠️ [{self.name}] 'icerik-govde' bulunamadı. URL: {url}")
+        return None
         
 
     def parse_announcements(self, soup: BeautifulSoup) -> List[Dict]:
