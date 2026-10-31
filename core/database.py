@@ -174,13 +174,18 @@ class Database:
             return False
     
     
-    def get_announcement_by_id(self, site_name: str, announcement_id: str) -> Optional[Dict]:
+    def get_announcement_by_id(self, site_name: str, announcement_id: str, url: Optional[str] = None) -> Optional[Dict]:
         """
         Belirli bir duyuruyu (site adı ve duyuru ID'si ile) veritabanından çeker.
+        
+        ID ile kayıt bulunamazsa ve `url` verilmişse aynı site ve URL'e sahip
+        mevcut kaydı kontrol eder; eşleşme varsa kaydın `announcement_id`
+        değerini yeni ID ile güncelleyerek döndürür.
         
         Args:
             site_name: Site adı
             announcement_id: Duyuru ID'si
+            url: Duyuru URL'i (opsiyonel, URL bazlı eşleştirme için)
             
         Returns:
             Duyuru bilgileri (dict) veya bulunamazsa None.
@@ -193,16 +198,38 @@ class Database:
             ''', (site_name, announcement_id))
             
             row = cursor.fetchone()
-            # 'sqlite3.Row' nesnesini dict'e çevir
-            return dict(row) if row else None
+            if row:
+                return dict(row)
+                
+            if url:
+                cursor.execute('''
+                    SELECT * FROM announcements
+                    WHERE site_name = ? AND url = ?
+                    ORDER BY id DESC LIMIT 1
+                ''', (site_name, url))
+                row = cursor.fetchone()
+                if row:
+                    cursor.execute('''
+                        UPDATE announcements
+                        SET announcement_id = ?
+                        WHERE id = ?
+                    ''', (announcement_id, row['id']))
+                    self.conn.commit()
+                    record = dict(row)
+                    record['announcement_id'] = announcement_id
+                    log_debug(f"🔄 [DATABASE] [{site_name}] Duyuru ID güncellendi: {row['announcement_id']} -> {announcement_id}")
+                    return record
+                    
+            return None
             
         except Exception as e:
             log_database_error("🛑 Duyuru getirme (by_id)", e)
+            self.conn.rollback()
             return None
 
-    def update_announcement(self, site_name: str, announcement_id: str, new_title: str, new_hash: str, new_raw_content: Optional[str]) -> bool:
+    def update_announcement(self, site_name: str, announcement_id: str, new_title: str, new_hash: str, new_raw_content: Optional[str], new_url: Optional[str] = None) -> bool:
         """
-        Mevcut bir duyurunun başlığını ve/veya hash'ini günceller.
+        Mevcut bir duyurunun başlığını, URL'ini ve/veya içerik hash'ini günceller.
         
         Args:
             site_name: Site adı
@@ -210,6 +237,7 @@ class Database:
             new_title: Yeni başlık
             new_hash: Yeni içerik hash'i
             new_raw_content: Yeni ham HTML (veya None)
+            new_url: Yeni duyuru URL'i (None ise mevcut URL korunur)
             
         Returns:
             bool: Güncelleme başarılıysa True, değilse False.
@@ -218,9 +246,9 @@ class Database:
             cursor = self.conn.cursor()
             cursor.execute('''
                 UPDATE announcements
-                SET title = ?, content_hash = ?, raw_content = ?, created_at = CURRENT_TIMESTAMP
+                SET title = ?, url = COALESCE(?, url), content_hash = ?, raw_content = ?, created_at = CURRENT_TIMESTAMP
                 WHERE site_name = ? AND announcement_id = ?
-            ''', (new_title, new_hash, new_raw_content, site_name, announcement_id))
+            ''', (new_title, new_url, new_hash, new_raw_content, site_name, announcement_id))
             
             self.conn.commit()
             return cursor.rowcount > 0

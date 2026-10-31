@@ -130,9 +130,12 @@ class BSEU_Duyuru(BaseScraper):
                 # Göreceli URL'i (örn: /bilgisayar/Icerik/...) tam adrese çevir
                 full_url = urljoin(self.BASE_URL, relative_url)
                 
-                # URL'den ID üret (BaseScraper'daki yardımcı fonksiyon)
-                # ID için göreceli URL'i kullanmak daha temiz bir ID sağlar
-                ann_id = self._generate_id_from_url(relative_url)
+                # Karttaki stabil içerik ID'sini (data-icerikid) kullan;
+                # bulunamazsa yedek olarak URL'den ID üret
+                raw_id = card.get('data-icerikid')
+                ann_id = str(raw_id).strip() if raw_id else ""
+                if not ann_id:
+                    ann_id = self._generate_id_from_url(relative_url)
                 
                 # 4. Sözlüğü oluştur ve listeye ekle
                 announcements_list.append({

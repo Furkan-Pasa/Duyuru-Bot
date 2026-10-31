@@ -345,8 +345,8 @@ class DuyuruScheduler:
                 log_warning(f"⚠️ [{site_name}]: ID'siz duyuru bulundu, atlanıyor: {ann.get('title')}")
                 continue
             
-            # DB'de bu ID var mı?
-            db_record = self.db.get_announcement_by_id(site_name, ann_id)
+            # DB'de bu ID (veya aynı URL) var mı?
+            db_record = self.db.get_announcement_by_id(site_name, ann_id, url=ann.get('url'))
             
             if db_record is None:
                 # --- DURUM 1: YENİ DUYURU ---
@@ -398,7 +398,8 @@ class DuyuruScheduler:
                             announcement_id=ann_id, 
                             new_title=ann['title'], 
                             new_hash=check.content_hash,
-                            new_raw_content=check.raw_content
+                            new_raw_content=check.raw_content,
+                            new_url=ann.get('url')
                         )
                         updated_announcements_count += 1
                     else:
@@ -410,7 +411,8 @@ class DuyuruScheduler:
                         announcement_id=ann_id, 
                         new_title=ann['title'], 
                         new_hash=check.content_hash,
-                        new_raw_content=check.raw_content
+                        new_raw_content=check.raw_content,
+                        new_url=ann.get('url')
                     )
                     
         return new_announcements_count, updated_announcements_count    
