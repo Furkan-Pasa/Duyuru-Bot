@@ -4,9 +4,8 @@ APScheduler kullanarak görev zamanlaması (Orkestrasyon).
 
 Bu modül, `DuyuruScheduler` sınıfını içerir. Bu sınıfın sorumlulukları:
 1. `bot_config`'i okuyarak tüm aktif scraper'ları dinamik olarak yüklemek.
-2. `APScheduler`'ı başlatmak ve her scraper için 2 görev kurmak:
-    - Biri 'cron' (periyodik) görev (örn: her saat '01' ve '31'de).
-    - Biri 'date' (ilk çalıştırma) görevi (bot başlar başlamaz).
+2. `APScheduler`'ı başlatmak ve her scraper için periyodik cron görevi zamanlamak
+    (başlangıçta kademeli ilk çalışma ile birlikte).
 3. `_run_check` metodu ile scraper'ları tetiklemek, DB'yi kontrol etmek.
 4. Yeni/güncel duyuruları `telegram_bot`'a göndermek.
 5. `shutdown` ile tüm kaynakları (DB, session'lar, thread'ler) güvenle kapatmak.
@@ -131,9 +130,10 @@ class DuyuruScheduler:
         """
         Zamanlayıcıyı yapılandırır, görevleri ekler ve arkaplan thread'inde başlatır.
         
-        Her site için 2 görev ekler:
-        1. `CronTrigger`: `config.py`'deki dakikalarda (örn: '01', '31') her saat çalışır.
-        2. `date`: Bot başlar başlamaz "bir kerelik" çalışır. (Staggered)
+        Her site için `CronTrigger` tabanlı tek bir görev tanımlanır.
+        `next_run_time` parametresi ile bot açılışında kademeli ilk çalıştırma
+        sağlanır; ardından görev belirlenen cron dakikalarında periyodik olarak devam eder.
+        `max_instances=1` ve `coalesce=True` ile aynı scraper'ın eşzamanlı çalışması engellenir.
         """
         if not self.scrapers:
             log_warning("⚠️ Scheduler | Hiç aktif scraper bulunamadı. Lütfen bot_config.py dosyasını kontrol edin.")
@@ -142,40 +142,31 @@ class DuyuruScheduler:
         log_info("⏰ Scheduler | Zamanlayıcı görevleri ayarlanıyor...")
         
         # Botun ilk görevini çalıştırması için başlangıç gecikmesi (saniye)
-        # Görevlerin birbirini boğmaması için 'stagger' (kademeli başlatma) yapılır
+        # Görevlerin birbirini boğmaması için kademeli başlatma (stagger) yapılır
         initial_run_delay_seconds = 2
         
         for site_name, data in self.scrapers.items():
             site_config = data['config']
             scraper_instance = data['instance']
-        
-            # --- GÖREV 1: DÜZENLİ (CRON) GÖREVİ ---
-            # Bu, config'de belirtilen dakikalarda (örn: '01', '31') her saat çalışır
             minutes = ','.join(site_config['schedule_minutes'])
+            
+            # İlk çalıştırma zamanı (kademeli gecikme ile)
+            first_run_time = datetime.now() + timedelta(seconds=initial_run_delay_seconds)
+            
             self.scheduler.add_job(
                 self._run_check,
                 trigger=CronTrigger(minute=minutes, hour='*'),
                 args=[site_name, scraper_instance, site_config],
+                id=f"check_{site_name}",
                 name=f"Check_{site_name}",
-                misfire_grace_time=120  # Görev gecikirse 120 saniyeye kadar yine çalıştır
+                next_run_time=first_run_time,
+                max_instances=1,
+                coalesce=True,
+                misfire_grace_time=120
             )
-            log_info(f"📅 Scheduler | Görev eklendi: [{site_name}] (Her saatin {minutes} dakikalarında)")
-
-            # --- GÖREV 2: İLK ÇALIŞTIRMA (DATE) GÖREVİ ---
-            # Bot başladıktan 'initial_run_delay_seconds' saniye sonra "bir kerelik" çalışır.
-            # Sunucunun yerel saatine göre hesaplama yap
-            run_time = datetime.now() + timedelta(seconds=initial_run_delay_seconds)
+            log_info(f"📅 Scheduler | Görev eklendi: [{site_name}] (Her saatin {minutes} dakikalarında, ilk çalışma: {first_run_time.strftime('%H:%M:%S')})")
             
-            self.scheduler.add_job(
-                self._run_check,
-                trigger='date', # 'date' trigger'ı "bir kerelik" demektir
-                run_date=run_time,
-                args=[site_name, scraper_instance, site_config],
-                name=f"InitialRun_{site_name}"
-            )
-            log_debug(f"🚀 Scheduler | İlk-çalıştırma görevi eklendi: [{site_name}] (Çalışma zamanı: {run_time.strftime('%H:%M:%S')})")
-            
-            # Bir sonraki scraper'ın ilk çalıştırması 5 saniye sonra olsun
+            # Bir sonraki scraper'ın ilk çalıştırması için kademeli gecikme
             initial_run_delay_seconds += 5
             
         # Tüm görevler eklendi, şimdi scheduler'ı BAŞLAT
