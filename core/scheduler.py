@@ -249,28 +249,28 @@ class DuyuruScheduler:
                 
     def _process_first_run(self, scraper: BaseScraper, site_config: Dict, announcements: List[Dict]) -> int:
         """
-        İlk çalıştırma: DB'yi spam'sız doldurma.
+        İlk çalıştırma: Veritabanını başlangıç verisiyle doldurur ve en güncel duyuruları gönderir.
         
-        Scraper'dan gelen tüm duyuruları alır.
-        (FIRST_RUN_FETCH_LIMIT) kadarını db ekler.
+        Scraper'dan gelen duyurulardan `FIRST_RUN_FETCH_LIMIT` kadarı işlenir:
+        - Bildirim gönderilmeyecek eski duyurular doğrudan veritabanına kaydedilir.
+        - Bildirim gönderilecek en yeni `FIRST_RUN_SEND_LIMIT` duyuru ise yalnızca
+          Telegram gönderimi başarılı olduğunda veritabanına kaydedilir.
+        
         Returns:
-            Gönderilen duyuru sayısı (int).
+            Başarıyla gönderilen duyuru sayısı (int).
         """
         limit_to_save = bot_config.FIRST_RUN_FETCH_LIMIT
         limit_to_send = bot_config.FIRST_RUN_SEND_LIMIT
         
-        # 'announcements' listesi en yeniden eskiye sıralı varsayılıyor.
-        # Sadece kaydetmek istediğimiz kadarını al
-        announcements_to_save = announcements[:limit_to_save]
+        # 'announcements' listesi en yeniden eskiye sıralı varsayılıyor
+        announcements_to_process = announcements[:limit_to_save]
         
         total_found = len(announcements)
-        total_to_save = len(announcements_to_save)
+        total_to_process = len(announcements_to_process)
         
-        log_info(f"✨ [{scraper.name}] Sayfada {total_found} duyuru bulundu. Sadece en yeni {total_to_save} tanesi DB'ye ekleniyor...")
+        log_info(f"✨ [{scraper.name}] Sayfada {total_found} duyuru bulundu. En yeni {total_to_process} tanesi işleniyor...")
         
-        saved_announcements = []
-        
-        for ann in announcements_to_save:
+        for ann in announcements_to_process:
             try:
                 # content_text ham HTML veya None olabilir
                 content_text = scraper.fetch_announcement_content(ann['url'])
@@ -278,26 +278,33 @@ class DuyuruScheduler:
             except Exception as e:
                 log_error(f"❌ [{scraper.name}] (İlk Çalıştırma) İçerik çekme hatası: {e} - URL: {ann['url']}")
                 ann['content'] = None  # İçerik çekilemese de başlık hash'i ile kaydet
-            
-            # İçerik başarılı veya başarısız, her durumda DB'ye kaydet
+        
+        # Gönderilecek (en yeni) ve sadece kaydedilecek (daha eski) duyuruları ayır
+        announcements_to_send = announcements_to_process[:limit_to_send]
+        announcements_seed_only = announcements_to_process[limit_to_send:]
+        
+        saved_count = 0
+        for ann in announcements_seed_only:
             if self.db.save_announcement(scraper.name, ann):
-                saved_announcements.append(ann)
-                
-        log_info(f"✨ [{scraper.name}]: {len(saved_announcements)}/{total_to_save} duyuru DB'ye eklendi. En son {limit_to_send} tanesi gönderiliyor.")
+                saved_count += 1
         
         sent_count = 0
-    
-        # Sadece başarıyla kaydedilen duyuruları gönder
-        # reversed() kullanıyoruz ki (eğer 1'den fazla gönderilecekse) eskiden yeniye gitsin.
-        for ann in reversed(saved_announcements[:limit_to_send]):
-            send_to_telegram(
+        # Birden fazla duyuru gönderilecekse eskiden yeniye doğru sırala
+        for ann in reversed(announcements_to_send):
+            is_sent = send_to_telegram(
                 channel_id=site_config['telegram_channel_id'],
                 site_name=scraper.name,
                 announcement=ann,
                 message_type='new'
             )
-            sent_count += 1
-            
+            if is_sent:
+                if self.db.save_announcement(scraper.name, ann):
+                    saved_count += 1
+                sent_count += 1
+            else:
+                log_warning(f"⚠️ [{scraper.name}] İlk çalıştırma duyurusu gönderilemedi, sonraki turda tekrar denenecek: {ann.get('id')}")
+                
+        log_info(f"✨ [{scraper.name}]: {saved_count}/{total_to_process} duyuru DB'ye eklendi, {sent_count}/{len(announcements_to_send)} duyuru Telegram'a gönderildi.")
         return sent_count     
     
     def _process_normal_run(self, scraper: BaseScraper, site_config: Dict, announcements: List[Dict]) -> Tuple[int, int]:
@@ -305,8 +312,9 @@ class DuyuruScheduler:
         Normal çalıştırma: Yeni/güncel duyuruları kontrol eder.
         
         Liste ters çevrilir (eskiden yeniye) ve DB ile karşılaştırılır:
-        1. DB'de yoksa -> YENİ (fetch_content, save, send).
+        1. DB'de yoksa -> YENİ (içeriği çek, Telegram'a gönder, başarılıysa DB'ye kaydet).
         2. DB'de varsa -> GÜNCELLEME KONTROLÜ (_check_announcement_update).
+           Bildirim gerektiren güncellemeler yalnızca Telegram gönderimi başarılıysa DB'ye işlenir.
         
         Returns:
             (yeni_sayısı, güncel_sayısı) tuple'ı.
@@ -356,16 +364,18 @@ class DuyuruScheduler:
                     log_error(f"❌ [{site_name}] (Yeni) İçerik çekilemedi: {ann['url']}, hata: {e}")
                     ann['content'] = None # İçerik olmasa da başlık hash'i ile kaydet
                 
-                # DB'ye kaydet (eğer zaten eklenmediyse True döner)
-                # save_announcement None içeriği ve başlıktan hash'i yönetir
-                if self.db.save_announcement(site_name, ann):
-                    send_to_telegram(
-                        channel_id=site_config['telegram_channel_id'],
-                        site_name=site_name,
-                        announcement=ann,
-                        message_type='new'
-                    )
-                    new_announcements_count += 1
+                # Önce Telegram'a gönder; yalnızca başarılı olursa DB'ye kaydet
+                is_sent = send_to_telegram(
+                    channel_id=site_config['telegram_channel_id'],
+                    site_name=site_name,
+                    announcement=ann,
+                    message_type='new'
+                )
+                if is_sent:
+                    if self.db.save_announcement(site_name, ann):
+                        new_announcements_count += 1
+                else:
+                    log_warning(f"⚠️ [{site_name}] Yeni duyuru gönderilemedi, sonraki turda tekrar denenecek: {ann_id}")
             
             else:
                 # --- DURUM 2: MEVCUT DUYURU (Güncelleme kontrolü) ---
@@ -374,25 +384,34 @@ class DuyuruScheduler:
                 is_recent = (index >= total_being_checked - recent_announcements_limit)
                 check = self._check_announcement_update(scraper, ann, db_record, is_recent)
                 
-                # DB'yi güncelle (bildirimli güncelleme VEYA sessiz referans kaydı)
-                if check.needs_save:
-                    self.db.update_announcement(
-                        site_name=site_name, 
-                        announcement_id=ann_id, 
-                        new_title=ann['title'], 
-                        new_hash=check.content_hash,
-                        new_raw_content=check.raw_content # Bu None veya ham HTML olabilir
-                    )
-                
                 if check.is_updated:
                     ann['content'] = check.raw_content # Mesaj için içeriği (None veya str) ekle
-                    send_to_telegram(
+                    is_sent = send_to_telegram(
                         channel_id=site_config['telegram_channel_id'],
                         site_name=site_name,
                         announcement=ann,
                         message_type='update'
                     )
-                    updated_announcements_count += 1
+                    if is_sent:
+                        self.db.update_announcement(
+                            site_name=site_name, 
+                            announcement_id=ann_id, 
+                            new_title=ann['title'], 
+                            new_hash=check.content_hash,
+                            new_raw_content=check.raw_content
+                        )
+                        updated_announcements_count += 1
+                    else:
+                        log_warning(f"⚠️ [{site_name}] Güncelleme bildirimi gönderilemedi, sonraki turda tekrar denenecek: {ann_id}")
+                elif check.needs_save:
+                    # Bildirimsiz referans kaydı
+                    self.db.update_announcement(
+                        site_name=site_name, 
+                        announcement_id=ann_id, 
+                        new_title=ann['title'], 
+                        new_hash=check.content_hash,
+                        new_raw_content=check.raw_content
+                    )
                     
         return new_announcements_count, updated_announcements_count    
 
