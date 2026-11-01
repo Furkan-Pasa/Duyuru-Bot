@@ -66,11 +66,12 @@ class BaseScraper(ABC):
 
     def _fetch_url(self, url: str) -> requests.Response:
         """
-        Retry mantığı olan ortak HTTP GET helper'ı.
+        Yeniden deneme (retry) mantığı içeren HTTP GET yardımcısı.
 
-        Tüm HTTP istekleri (sayfa listesi, duyuru içeriği) bu metodu kullanır.
-        `bot_config`'deki 'MAX_RETRIES' ve 'RETRY_DELAY' ayarlarına göre
-        hata durumunda (Timeout, ConnectionError, HTTPError) yeniden dener.
+        Tüm HTTP istekleri bu metodu kullanır. `bot_config`'deki
+        'MAX_RETRIES' ve 'RETRY_DELAY' ayarlarına göre geçici hatalarda
+        (Timeout, ConnectionError, 5xx, 429) yeniden dener.
+        Kalıcı 4xx istemci hatalarında (429 hariç) yeniden denemeden hata fırlatır.
 
         Args:
             url: Çekilecek URL.
@@ -85,32 +86,43 @@ class BaseScraper(ABC):
 
         while retries < bot_config.MAX_RETRIES:
             try:
-                # Güvenlik duvarına takılmamak için gecikme
+                # İstekler arası güvenlik gecikmesi
                 time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
 
                 response = self.session.get(url, timeout=bot_config.REQUEST_TIMEOUT)
 
-                # HTTP 4xx veya 5xx hata kodları için (örn: 404, 500)
+                # HTTP 4xx veya 5xx hata kodları için kontrol
                 response.raise_for_status()
 
-                # Encoding kontrolü (Türkçe karakter sorunları için)
+                # Encoding kontrolü
                 response.encoding = response.apparent_encoding
 
                 return response
 
-            # Yeniden denenebilir hatalar (Timeout, Bağlantı, HTTP Hataları)
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
+            except requests.exceptions.HTTPError as e:
+                # 4xx istemci hataları (429 Too Many Requests hariç) kalıcıdır
+                status_code = e.response.status_code if e.response is not None else None
+                if status_code and 400 <= status_code < 500 and status_code != 429:
+                    log_warning(f"⚠️ [{self.name}] İstemci hatası ({status_code}). Yeniden denenmeyecek: {url}")
+                    raise
+
                 retries += 1
-                log_warning(f"⚠️ [{self.name}] HTTP hatası ({e.__class__.__name__}). Retry {retries}/{bot_config.MAX_RETRIES}: {url}")
+                log_warning(f"⚠️ [{self.name}] HTTP hatası ({status_code or e.__class__.__name__}). Retry {retries}/{bot_config.MAX_RETRIES}: {url}")
+                if retries < bot_config.MAX_RETRIES:
+                    time.sleep(bot_config.RETRY_DELAY)
+
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                retries += 1
+                log_warning(f"⚠️ [{self.name}] Bağlantı hatası ({e.__class__.__name__}). Retry {retries}/{bot_config.MAX_RETRIES}: {url}")
                 if retries < bot_config.MAX_RETRIES:
                     time.sleep(bot_config.RETRY_DELAY)
 
             except Exception as e:
-                # Diğer beklenmeyen (yeniden denenemez) hatalar
+                # Diğer beklenmeyen hatalar
                 log_error(f"❌ [{self.name}] Beklenmeyen HTTP hatası: {url}, hata: {e}", exc_info=True)
                 raise
 
-        # While döngüsü bittiyse (retries aşıldı)
+        # Yeniden deneme sayısı aşıldı
         raise Exception(f"{self.name}: {bot_config.MAX_RETRIES} deneme sonrası URL çekilemedi: {url}")
 
     def fetch_page(self) -> BeautifulSoup:
