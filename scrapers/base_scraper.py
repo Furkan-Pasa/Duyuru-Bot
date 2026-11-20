@@ -6,12 +6,12 @@ Bu sınıf, tüm scraper'lar için ortak olan şu işlevleri sağlar:
 - `requests.Session` yönetimi (performans ve ortak header'lar için).
 - `fetch_page`: Sayfayı `requests` ile çekme, 'retry' (yeniden deneme) mantığı.
 - `scrape`: Ana orkestrasyon metodu (fetch -> parse).
-- `_clean_text`, `_generate_id_from_url` gibi yardımcı (utility) metotlar.
+- `_clean_text`, `_normalize_content`, `_generate_id_from_url` gibi yardımcı metotlar.
 
 Bu sınıftan miras alan (inherit eden) her alt sınıf,
 iki metodu @abstractmethod gereği EZMEK (override) zorundadır:
 1. `parse_announcements`: Sayfa listesini (soup) alıp duyuru listesi döndürür.
-2. `fetch_announcement_content`: Tek bir duyuru URL'ine gidip içerik metnini/HTML'ini döndürür.
+2. `fetch_announcement_content`: Tek bir duyuru URL'ine gidip normalize edilmiş içerik metnini döndürür.
 """
 
 import time
@@ -19,12 +19,18 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
 from abc import ABC, abstractmethod  # Soyut sınıf için
+from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
 import bot_config
 from core.logger import log_info, log_error, log_debug, log_scraper_error, log_scraper_success, log_warning
 
 
 class BaseScraper(ABC):
+    DIRECT_FILE_EXTENSIONS = (
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.odt', '.ods', '.odp', '.zip', '.rar', '.7z',
+        '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.mp3',
+    )
     """
     Soyut temel scraper sınıfı.
     (Yukarıdaki modül docstring'ini inceleyin)
@@ -47,7 +53,7 @@ class BaseScraper(ABC):
     def _create_session(self) -> requests.Session:
         """
         Ortak header'ları (User-Agent vb.) olan bir 'requests.Session' oluşturur.
-        
+
         Session kullanmak, TCP bağlantılarını yeniden kullanarak
         performansı artırır (HTTP Keep-Alive).
         """
@@ -82,6 +88,7 @@ class BaseScraper(ABC):
         Raises:
             Exception: Max retry aşıldığında veya yeniden denenemez hata durumunda.
         """
+        request_url = self._sanitize_url(url)
         retries = 0
 
         while retries < bot_config.MAX_RETRIES:
@@ -89,13 +96,15 @@ class BaseScraper(ABC):
                 # İstekler arası güvenlik gecikmesi
                 time.sleep(bot_config.REQUEST_DELAY_MS / 1000.0)
 
-                response = self.session.get(url, timeout=bot_config.REQUEST_TIMEOUT)
+                response = self.session.get(request_url, timeout=bot_config.REQUEST_TIMEOUT)
 
                 # HTTP 4xx veya 5xx hata kodları için kontrol
                 response.raise_for_status()
 
-                # Encoding kontrolü
-                response.encoding = response.apparent_encoding
+                # Sunucu Content-Type içinde charset bildirmediyse tahmini veya utf-8 kullan
+                content_type = response.headers.get("Content-Type", "") if response.headers else ""
+                if "charset" not in content_type.lower():
+                    response.encoding = response.apparent_encoding or "utf-8"
 
                 return response
 
@@ -147,15 +156,14 @@ class BaseScraper(ABC):
 
         log_debug(f"✅ {self.name}: Sayfa başarıyla çekildi")
         return soup
-    
+
     @abstractmethod
     def parse_announcements(self, soup: BeautifulSoup) -> List[Dict]:
         """
-        [ZORUNLU] HTML (soup) 'u parse ederek duyuru listesini döndürür.
+        [ZORUNLU] HTML (soup)'u parse ederek duyuru listesini döndürür.
 
-        Bu metot, alt sınıflar (örn: Scraper.py) tarafından
-        mutlaka ezilmeli (override) ve o sitenin HTML yapısına
-        göre yazılmalıdır.
+        Bu metot, alt sınıflar tarafından mutlaka ezilmeli (override) ve
+        o sitenin HTML yapısına göre yazılmalıdır.
 
         Args:
             soup: `fetch_page`'den gelen BeautifulSoup nesnesi.
@@ -168,7 +176,7 @@ class BaseScraper(ABC):
                     'id': 'benzersiz_duyuru_id',
                     'title': 'Duyuru başlığı',
                     'url': 'https://... (tam URL)',
-                    'date': '01.01.2025' (opsiyonel)
+                    'date': '2025-01-01' (ISO YYYY-MM-DD, opsiyonel)
                 },
                 ...
             ]
@@ -181,15 +189,15 @@ class BaseScraper(ABC):
         [ZORUNLU] Tek bir duyurunun URL'ine giderek içeriğini çeker.
 
         Bu metot, alt sınıflar tarafından mutlaka ezilmelidir.
-        Döndürdüğü string, 'content_hash' oluşturmak için kullanılır.
-        Genellikle duyurunun ana metnini/HTML'ini içeren
-        div'in (örn: 'div.icerik-govde') 'str()' hali olmalıdır.
+        Döndürdüğü string, 'content_hash' oluşturmak ve saklamak için kullanılır;
+        görünür metinle birlikte bağlantı ve medya adreslerini de içerecek
+        şekilde normalize edilmiş olmalıdır.
 
         Args:
             url: Tek bir duyurunun tam URL'i.
 
         Returns:
-            Optional[str]: Hash'lenecek içerik (genellikle ham HTML string'i).
+            Optional[str]: Normalize edilmiş içerik metni.
                           Sayfa geldi ama içerik bulunamadıysa None döner.
 
         Raises:
@@ -202,7 +210,7 @@ class BaseScraper(ABC):
     def scrape(self) -> List[Dict]:
         """
         Ana scraping orkestrasyon metodu.
-        
+
         Sırasıyla `fetch_page()` ve `parse_announcements()`'i çağırır.
         Tüm süreci yönetir ve duyuru listesini döndürür.
         Scheduler bu metodu çağırır.
@@ -223,7 +231,7 @@ class BaseScraper(ABC):
         except Exception as e:
             # fetch_page veya parse_announcements'dan gelen hatalar
             log_scraper_error(self.name, e)
-            return [] # Hata durumunda boş liste döndür, scheduler devam etsin
+            return []  # Hata durumunda boş liste döndür, scheduler devam etsin
 
     def _clean_text(self, text: str) -> str:
         """
@@ -242,11 +250,74 @@ class BaseScraper(ABC):
         # 'str.split()' tüm whitespace'leri (space, \n, \t, \r) ayırır,
         # ' '.join() ile tek boşlukla birleştirir.
         text = " ".join(text.split())
+        return text.strip()
 
-        # strip() sadece baştaki/sondakini alır, ama split/join daha garanti
-        text = text.strip()
+    def _normalize_content(self, element: Optional[BeautifulSoup], base_url: Optional[str] = None) -> Optional[str]:
+        """
+        Bir HTML içerik bloğundan normalize edilmiş metin ve bağlantı özeti üretir.
 
-        return text
+        Script/style etiketlerini temizler, metindeki fazla boşlukları sadeleştirir
+        ve yalnız bağlantı URL'lerinin (ör. PDF dosyaları) değiştiği durumların da
+        algılanabilmesi için `href` ve `src` adreslerini çıktıya ekler.
+
+        Args:
+            element: İçeriği barındıran BeautifulSoup öğesi.
+            base_url: Göreceli linklerin çözümleneceği temel URL.
+
+        Returns:
+            Normalize edilmiş içerik string'i veya içerik boşsa None.
+        """
+        if element is None:
+            return None
+
+        for tag in element.find_all(['script', 'style']):
+            tag.decompose()
+
+        root_url = base_url or self.url
+        parts: List[str] = []
+
+        text = self._clean_text(element.get_text(" "))
+        if text:
+            parts.append(text)
+
+        for anchor in element.find_all('a', href=True):
+            href = anchor['href'].strip()
+            if not href or href.startswith('#') or href.lower().startswith('javascript:'):
+                continue
+            parts.append(f"link:{urljoin(root_url, href)}")
+
+        for media_tag in element.find_all(['img', 'iframe'], src=True):
+            src = media_tag['src'].strip()
+            if not src:
+                continue
+            parts.append(f"media:{urljoin(root_url, src)}")
+
+        return "\n".join(parts) if parts else None
+
+    @classmethod
+    def _is_direct_file_url(cls, url: str) -> bool:
+        """URL path kısmı doğrudan bir belge, arşiv veya medya dosyasına işaret ediyorsa True döndürür."""
+        path = urlsplit(url.strip()).path.lower().rstrip('/')
+        return path.endswith(cls.DIRECT_FILE_EXTENSIONS)
+
+    @staticmethod
+    def _is_html_response(response: object) -> bool:
+        """HTTP yanıtının Content-Type başlığı HTML/XML/metin ise (veya başlık yoksa) True döndürür."""
+        headers = getattr(response, 'headers', None)
+        if not headers:
+            return True
+        content_type = (headers.get('Content-Type') or '').lower()
+        if not content_type:
+            return True
+        return any(token in content_type for token in ('text/html', 'application/xhtml', 'text/plain', 'xml'))
+
+    @staticmethod
+    def _sanitize_url(url: str) -> str:
+        """URL'in path ve query kısımlarındaki ASCII dışı karakterleri ve boşlukları RFC 3986 uyumlu kodlar."""
+        parts = urlsplit(url.strip())
+        safe_path = quote(parts.path, safe="/%:@!$&'()*+,;=-._~")
+        safe_query = quote(parts.query, safe="/%?:@!$&'()*+,;=-._~")
+        return urlunsplit((parts.scheme, parts.netloc, safe_path, safe_query, parts.fragment))
 
     def _generate_id_from_url(self, url: str) -> str:
         """
@@ -261,11 +332,7 @@ class BaseScraper(ABC):
         Returns:
             ID string (örn: "12345").
         """
-        # URL'nin sonundaki '/' (trailing slash) varsa kaldır
-        # ve '/' karakterine göre böl
         parts = url.rstrip("/").split("/")
-        
-        # Son parçayı ID olarak kullan
         return parts[-1] if parts else url
 
     def close(self):

@@ -15,13 +15,13 @@ SERVICE_NAME="duyuru-bot"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
 
 echo "Servis durduruluyor: $SERVICE_NAME"
-systemctl stop $SERVICE_NAME.service
+systemctl stop "$SERVICE_NAME.service" 2>/dev/null || true
 
 echo "Servisin otomatik açılması devre dışı bırakılıyor..."
-systemctl disable $SERVICE_NAME.service
+systemctl disable "$SERVICE_NAME.service" 2>/dev/null || true
 
 echo "Servis dosyası siliniyor: $SERVICE_FILE_PATH"
-rm $SERVICE_FILE_PATH
+rm -f "$SERVICE_FILE_PATH"
 
 echo "systemd yeniden yükleniyor..."
 systemctl daemon-reload

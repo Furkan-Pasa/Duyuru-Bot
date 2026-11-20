@@ -1,6 +1,6 @@
 [project]
 name = "duyuru-bot"
-version = "0.30.4"
+version = "0.40.0"
 description = "Duyuru sitelerini periyodik olarak tarayan ve yeni/güncellenmiş duyuruları Telegram kanalına gönderen Python botu"
 authors = [
     {name = "Furkan Çelik"}
@@ -11,7 +11,7 @@ requires-python = ">=3.13"
 keywords = ["telegram", "bot", "scraper", "announcement", "web-scraping", "apscheduler"]
 
 dependencies = [
-    "requests==2.31.0",
+    "requests==2.32.5",
     "beautifulsoup4==4.12.3",
     "APScheduler==3.10.4",
     "python-telegram-bot==20.7",

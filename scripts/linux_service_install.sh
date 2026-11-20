@@ -15,12 +15,10 @@ fi
 SERVICE_NAME="duyuru-bot"
 # Betiğin çalıştığı dizinin bir üstünü (proje kökünü) al
 PROJECT_PATH=$(dirname "$(readlink -f "$0")")/..
-# Absolute path'e çevir
 PROJECT_PATH=$(readlink -f "$PROJECT_PATH")
-# Betiği 'sudo' ile çalıştıran kullanıcının adını al
-USER_NAME=$SUDO_USER
-# Kullanıcının birincil grubunu al
-GROUP_NAME=$(id -gn $USER_NAME)
+# Doğrudan root oturumunda SUDO_USER boş olur; o durumda geçerli kullanıcıyı kullan
+USER_NAME="${SUDO_USER:-$(id -un)}"
+GROUP_NAME="$(id -gn "$USER_NAME")"
 
 START_SCRIPT_PATH="$PROJECT_PATH/scripts/linux_start_bot.sh"
 SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME.service"
@@ -31,12 +29,12 @@ echo "Proje Yolu: $PROJECT_PATH"
 
 # Eğer servis zaten varsa, önce durdur
 echo "Mevcut servis (varsa) durduruluyor..."
-systemctl stop $SERVICE_NAME.service > /dev/null 2>&1 || true
+systemctl stop "$SERVICE_NAME.service" > /dev/null 2>&1 || true
 
 # systemd servis dosyasını oluşturmak için HEREDOC kullan
 # 'EOF' tırnak içinde OLMAMALI ki $USER_NAME gibi değişkenler çalışsın
 echo "Servis dosyası oluşturuluyor: $SERVICE_FILE_PATH"
-cat > $SERVICE_FILE_PATH << EOF
+cat > "$SERVICE_FILE_PATH" << EOF
 [Unit]
 Description=Duyuru Bot (by Furkan Pasa)
 After=network-online.target
@@ -58,17 +56,17 @@ WantedBy=multi-user.target
 EOF
 
 # linux_start_bot.sh'e çalıştırma izni ver
-chmod +x $START_SCRIPT_PATH
+chmod +x "$START_SCRIPT_PATH"
 
 # systemd'yi güncelle, servisi etkinleştir ve başlat
 echo "systemd yeniden yükleniyor (daemon-reload)..."
 systemctl daemon-reload
 
 echo "Servis açılışta başlamak üzere etkinleştiriliyor..."
-systemctl enable $SERVICE_NAME.service
+systemctl enable "$SERVICE_NAME.service"
 
 echo "Servis başlatılıyor..."
-systemctl start $SERVICE_NAME.service
+systemctl start "$SERVICE_NAME.service"
 
 echo ""
 echo "✅ Kurulum tamamlandı!"

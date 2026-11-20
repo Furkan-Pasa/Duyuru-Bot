@@ -1,0 +1,1677 @@
+<!doctype html>
+<html xml:lang="tr-TR" lang="tr-TR">
+
+<head> </head>
+
+<body id="page-body" class="container-fluid justify-content-md-center">
+    <button id="basaDonTop" class="basaDonTop d-flex justify-content-center align-items-center">
+        <em class="fas fa-chevron-up"></em>
+    </button>
+    <!-- partial -->
+    <script type="text/javascript">
+        let list = document.querySelectorAll("li");
+
+        for (let i = 0; i < list.length; i++) {
+            list[i].onmouseover = function () {
+                let j = 0;
+                while (j < list.length) {
+                    list[j++].className = "list";
+                }
+                list[i].className = "list active";
+            };
+        }
+    </script>
+
+    <div class="modal fade" id="siteArama" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+        aria-hidden="false" style="display: none">
+        <div class="modal-dialog h-100" role="document">
+            <div class="modal-content" id="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        Site içeriklerinde arama yapabilirsiniz...
+                    </h5>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex">
+                        <div class="col px-0">
+                            <input autofocus class="form-control focus" id="aranan-metin" type="text"
+                                style="height: 4rem; font-size: 2rem" placeholder="Anahtar kelime, başlık..." />
+                        </div>
+                        <div class="align-items-end">
+                            <button class="btn btn-danger pt-2" id="btn-sitede-ara" style="height: 4rem">
+                                <i class="fa fa-search"></i>
+                                <span class="spinner-grow spinner-grow-sm arama-loader loader"></span>
+                                Ara
+                            </button>
+                        </div>
+                    </div>
+                    <div class="yukleme loader">
+                        <div class="spinner-grow text-primary"></div>
+                        <div class="spinner-grow text-muted"></div>
+                        <div class="spinner-grow text-danger"></div>
+                    </div>
+                    <div class="arama-sonuc mt-2"></div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sayfa-govde-dis-kutu" class="d-flex justify-content-center p-0 m-0" style="max-width: 100%">
+        <div id="sayfa-kapsayici-kutu" class="container-fluid p-0 m-0" style="max-width: 100%">
+            <div class="d-flex flex-column banner-menu w-100">
+                <link href="/css/tema-default.css" rel="stylesheet" />
+
+                <div id="ortadaki-ust-logo" class="col d-flex flex-column ustMenu py-1">
+                    <div class="d-flex justify-content-between mobile-menu d-sm-flex d-md-none" style="width: 100%">
+                        <div id="mobile-menu-buton" class="">
+                            <em class="fas fa-bars mobileMenuButon" data-hedefclass="menu-baslik-tasiyici-kutu"></em>
+                        </div>
+
+                        <div id="ust-logo-alani" class="mx-auto mobile-logo">
+                            <a href="/bilgisayar/" title="Ana Sayfa">
+                                <img alt="Kurum Logosu" src="/dosya/SiteLogo_5bc2_&#xFC;st.webp" />
+                            </a>
+                        </div>
+
+                        <div id="mobile-menu-button-tepe-menu" class="">
+                            <em class="fas fa-bars mobileMenuButon" data-hedefclass="menu-tepe"></em>
+                        </div>
+                    </div>
+
+                    <div id="tepe-menu" class="menu menu-tepe mx-auto justify-content-md-between menu-desktop px-0">
+                        <div id="sol-menu-elemanlari"
+                            class="sol d-flex flex-sm-column align-items-start align-items-sm-center flex-md-row py-0">
+                            <a title="Birim Ana Sayfa"
+                                class="mx-0 px-2 border-md-right text-left d-flex justify-content-center align-items-center"
+                                target="_self" href="https://bilecik.edu.tr">
+                                <img style="max-width: 2rem" class="px-0" alt="BŞEÜ logo"
+                                    src="/dosya/SiteLogo_5bc2_&#xFC;st.webp" />
+                                <strong class="px-1">BŞEÜ</strong>
+                            </a>
+                        </div>
+                        <div id="sag-menu-elemanlari"
+                            class="sag px-0 col d-flex flex-sm-column flex-md-row align-items-center justify-content-end">
+                            <div class="sosyalIkon sag col-md-5 d-flex justify-content-end px-0">
+                                <a href="#" id="sitede_arama" title="sitede arama" class="arama-modal-ac"
+                                    data-bs-toggle="modal" data-bs-target="#siteArama"><em
+                                        class="fas fa-search py-1 simge-daire"
+                                        style="height: 1.65rem; width: 1.65rem"></em></a>
+                            </div>
+                        </div>
+
+                        <div id="sayfa-dili-degistirme-dis-kutu"
+                            class="sag d-flex justify-content-end justify-content-sm-center menu-desktop pr-0">
+                            <div id="sayfa-dili-degistirme-ic-kutu"
+                                class="d-flex justify-content-end align-items-center dil-menu">
+                                <a href="https://www.bilecik.edu.tr/bilgisayar-en" title="EN"
+                                    class="btn btn-sm btn-link"><span class="p-2">EN</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div id="surgu-resim-menu-dis-kutu" class="d-flex justify-content-center align-self-start w-100">
+                    <div id="surgu-resim-menu" class="surguResimMenu" style="z-index: 115">
+                        <div class="menu-tasiyici-kutu py-0 d-flex align-items-center justify-content-center">
+                            <div class="col px-0 logo-dis-kutu logo-desktop">
+                                <div id="ust-logo-alani" class="d-flex justify-content-start mx-auto">
+                                    <div class="ustLogo py-1 d-flex my-3 align-items-center">
+                                        <a href="/bilgisayar/" title="Ana Sayfa">
+                                            <img alt="Kurum Logosu" src="/dosya/SiteLogo_5bc2_&#xFC;st.webp"
+                                                class="no-lazy" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="kurum-adi" href="/bilgisayar/">
+                                Bilgisayar M&#xFC;hendisli&#x11F;i
+                            </a>
+
+                            <div class="align-self-end justify-content-between menu-baslik-tasiyici-kutu">
+                                <div
+                                    class="col d-md-flex pr-0 align-items-end justify-content-end justify-content-sm-end flex-wrap">
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-items-center justify-content-center"
+                                        data-icerik-eleman="Hakkimizda">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="Hakk&#x131;m&#x131;zda" target="_self"
+                                            href="">Hakk&#x131;m&#x131;zda</a>
+                                        <em class="ps-2 fa-solid fa-chevron-down"></em>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-items-center justify-content-center"
+                                        data-icerik-eleman="ogrenci">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="&#xD6;&#x11F;renci" target="_self" href="">&#xD6;&#x11F;renci</a>
+                                        <em class="ps-2 fa-solid fa-chevron-down"></em>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="Staj">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold" title="Staj"
+                                            target="_self" href="https://bilecik.edu.tr/bilgisayar/Icerik/Staj_d663a">
+                                            Staj</a>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="Etkinlikler">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold" title="Etkinlikler"
+                                            target="_self"
+                                            href="https://bilecik.edu.tr/bilgisayar/Icerik/Etkinlikler_fb9">
+                                            Etkinlikler</a>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="Bitirme_Tasarim_calismasi">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="Bitirme/Tasar&#x131;m &#xC7;al&#x131;&#x15F;mas&#x131;"
+                                            target="_self"
+                                            href="https://bilecik.edu.tr/bilgisayar/Icerik/Bitirme_Tasarim_calismasi">
+                                            Bitirme/Tasar&#x131;m
+                                            &#xC7;al&#x131;&#x15F;mas&#x131;</a>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="isletmede_Mesleki_Egitim">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="&#x130;&#x15F;letmede Mesleki E&#x11F;itim" target="_self"
+                                            href="https://bilecik.edu.tr/bilgisayar/Icerik/&#x130;&#x15F;letmede_Mesleki_E&#x11F;itim_(7_1)_43812">
+                                            &#x130;&#x15F;letmede Mesleki E&#x11F;itim</a>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="ikinci_Diploma">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="&#x130;kinci Diploma" target="_self"
+                                            href="https://bilecik.edu.tr/bseuikincidiploma">
+                                            &#x130;kinci Diploma</a>
+                                    </div>
+                                    <div class="py-4 menu-baslik-eleman px-3 text-center d-flex align-self-start0deg justify-content-center"
+                                        data-icerik-eleman="iletisim">
+                                        <a style="color: inherit; font-family: Montserrat-SemiBold"
+                                            title="&#x130;leti&#x15F;im" target="_self"
+                                            href="https://bilecik.edu.tr/bilgisayar/Icerik/&#x130;leti&#x15F;im_e1e82">
+                                            &#x130;leti&#x15F;im</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-icerik-tasiyici-kutu w-100 px-4 mx-1">
+                    <div id="Hakkimizda" class="align-items-center menu-eleman-icerik-kutu px-4 py-4">
+                        <em class="menuKapat p-2 fas fa-close float-right mx-2"></em>
+
+                        <div class="mx-auto px-3 d-flex" style="overflow: unset; height: 100%">
+                            <div
+                                class="col my-5 d-flex align-items-end justify-content-center text-center menu-icerik-ana-baslik-kutu align-self-center">
+                                <label class="menu-ana-baslik">HAKKIMIZDA</label>
+                            </div>
+                            <div class="mx-auto w-100 px-3 row d-flex align-items-center justify-content-between py-4">
+                                <div class="w-100 px-0 alt-menu-liste">
+                                    <div class="d-flex align-items-start">
+                                        <div class="col-md-3 flex-column me-3">
+                                            <a class="aktif d-flex align-items-center justify-content-between ana-menu-link py-1"
+                                                href="#" id="btn_4450" data-hedef="menu_4450" role="tab"
+                                                aria-controls="menu_4450">
+                                                Hakk&#x131;m&#x131;zda
+                                                <em class="fas fa-angles-right float-right mx-0"
+                                                    style="display: block"></em>
+                                            </a>
+                                        </div>
+
+                                        <div class="menu-icerik col-md-9 p-0 h-100">
+                                            <div class="alt-menu-icerik aktif row" id="menu_4450" role="tabpanel"
+                                                style="color: black; display: flex" aria-labelledby="btn_4450">
+                                                <div class="col-md-6">
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Misyon__ozgorev__ve_Vizyon__ozgoru__"
+                                                        target="_self">Misyon (&#xD6;zg&#xF6;rev) ve Vizyon
+                                                        (&#xD6;zg&#xF6;r&#xFC;)
+                                                    </a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/B&#xF6;l&#xFC;m_Ba&#x15F;kanl&#x131;&#x11F;&#x131;_14278"
+                                                        target="_self">B&#xF6;l&#xFC;m
+                                                        Ba&#x15F;kanl&#x131;&#x11F;&#x131;</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Akademik_Kadro_a922c"
+                                                        target="_self">Akademik Kadro</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Bilgisayar_Muhendisligi_Bolumu_Danisma_Kurulu"
+                                                        target="_self">Dan&#x131;&#x15F;ma Kurulu</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Laboratuvarlar_8e60e"
+                                                        target="_self">Laboratuvarlar</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/B%C3%B6l%C3%BCm_Komisyonlar%C4%B1_9dd0d"
+                                                        target="_self">Komisyonlar</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Bilimsel_Projeler_85cd9"
+                                                        target="_self">Bilimsel Projeler</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Kalite_56f1a"
+                                                        target="_self">Kalite</a>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/MuDEK_Akreditasyonu"
+                                                        target="_self">M&#xDC;DEK</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Program_Bilgileri_fda7e"
+                                                        target="_self">Program Bilgileri</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/&#x130;rtibatlar_c52a4"
+                                                        target="_self">&#x130;rtibatlar</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ogrenci" class="align-items-center menu-eleman-icerik-kutu px-4 py-4">
+                        <em class="menuKapat p-2 fas fa-close float-right mx-2"></em>
+
+                        <div class="mx-auto px-3 d-flex" style="overflow: unset; height: 100%">
+                            <div
+                                class="col my-5 d-flex align-items-end justify-content-center text-center menu-icerik-ana-baslik-kutu align-self-center">
+                                <label class="menu-ana-baslik">&#xD6;&#x11E;RENC&#x130;</label>
+                            </div>
+                            <div class="mx-auto w-100 px-3 row d-flex align-items-center justify-content-between py-4">
+                                <div class="w-100 px-0 alt-menu-liste">
+                                    <div class="d-flex align-items-start">
+                                        <div class="col-md-3 flex-column me-3">
+                                            <a class="aktif d-flex align-items-center justify-content-between ana-menu-link py-1"
+                                                href="#" id="btn_4516" data-hedef="menu_4516" role="tab"
+                                                aria-controls="menu_4516">
+                                                Ba&#x11F;lant&#x131;lar
+                                                <em class="fas fa-angles-right float-right mx-0"
+                                                    style="display: block"></em>
+                                            </a>
+                                        </div>
+
+                                        <div class="menu-icerik col-md-9 p-0 h-100">
+                                            <div class="alt-menu-icerik aktif row" id="menu_4516" role="tabpanel"
+                                                style="color: black; display: flex" aria-labelledby="btn_4516">
+                                                <div class="col-md-6">
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://www.bilecik.edu.tr/main/Icerik/Akademik_Takvim_352c5"
+                                                        target="_self">Akademik Takvim</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Ders_Plan&#x131;_7db28"
+                                                        target="_self">Ders Plan&#x131;</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Ders_Program%C4%B1_7dbd1"
+                                                        target="_self">Ders Program&#x131;</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="http://ebs.bilecik.edu.tr/Program/DersPlani?BolumNo=188"
+                                                        target="_self">Ders &#x130;&#xE7;erikleri</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/uluslararasi/"
+                                                        target="_self">Erasmus</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="http://katalog.bilecik.edu.tr/yordam/">K&#xFC;t&#xFC;phane
+                                                        Veri Sitemi</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bikam.bilecik.edu.tr/site/userlogin"
+                                                        target="_self">Mezun Bilgi Sistemi</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://kms.kaysis.gov.tr/Home/Kurum/52300778"
+                                                        target="_self">Y&#xF6;netmelikler</a>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bilgisayar/Icerik/Kariyer_Danismani"
+                                                        target="_self">Kariyer Dan&#x131;&#x15F;man&#x131;</a>
+                                                    <a class="alt-menu-link nav-link p-1"
+                                                        href="https://bilecik.edu.tr/bseuikincidiploma"
+                                                        target="_self">&#x130;kinci Diploma</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row icerikBaslik"></div>
+
+            <div class="mt-0 container-fluid bg-light icerik-baslik-layout px-0">
+                <div class="d-flex icerik-genislik mx-auto justify-content-between">
+                    <div class="pt-1 mb-1"></div>
+
+                    <div class="pt-3 mb-1 px-3 mx-3">
+                        <h6 style="font-family: Montserrat-SemiBold">Duyuru</h6>
+                    </div>
+                </div>
+
+                <hr class="icerik-baslik-cizgi" style="margin: 0; padding: 0" />
+            </div>
+
+            <div class="container px-1 py-0 pb-4 icerik-genislik">
+                <div class="d-md-flex h-100 justify-content-md-between" style="display: grid">
+                    <div id="yan-menu" class="col-md-2 mt-3 mx-2 px-0 pt-2 yanMenu">
+                        <h5 class="fw-bold ps-2" style="
+                  font-family: Montserrat-SemiBold;
+                  border-left-style: solid;
+                  border-left-width: 3px;
+                  border-left-color: skyblue;
+                  color: var(--icerik-baslik-renk);
+                ">
+                            Son İçerikler
+                        </h5>
+
+                        <div id="son-icerik-liste" class="col solMenuListe ms-0 px-0 mx-0">
+                            <div class="row mx-0 px-0 border-top"
+                                id="2025_2026_G&#xFC;z_D&#xF6;nemi_B&#xFC;t&#xFC;nleme_S&#x131;nav&#x131;_Program&#x131;_Hk__89962">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">20 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_B&#xFC;t&#xFC;nleme_S&#x131;nav&#x131;_Program&#x131;_Hk__89962"
+                                        title="2025-2026 G&#xFC;z D&#xF6;nemi B&#xFC;t&#xFC;nleme S&#x131;nav&#x131; Program&#x131; Hk.">
+                                        2025-2026 G&#xFC;z D&#xF6;nemi B&#xFC;t&#xFC;nleme
+                                        S&#x131;nav&#x131; Program&#x131; Hk.
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row mx-0 px-0 border-top"
+                                id="BM400_Bitirme_calismasi_dersi_sunumlari_ve_listeleri_hakkinda_8b5">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">16 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/BM400_Bitirme_calismasi_dersi_sunumlari_ve_listeleri_hakkinda_8b5"
+                                        title="BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131; dersi sunumlar&#x131; ve listeleri hakk&#x131;nda">
+                                        BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131; dersi
+                                        sunumlar&#x131; ve listeleri hakk&#x131;nda
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row mx-0 px-0 border-top" id="ogrenci_Anketi__1__siniflar_icin_">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">15 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/ogrenci_Anketi__1__siniflar_icin_"
+                                        title="&#xD6;&#x11F;renci Anketi (1. s&#x131;n&#x131;flar i&#xE7;in)">
+                                        &#xD6;&#x11F;renci Anketi (1. s&#x131;n&#x131;flar
+                                        i&#xE7;in)
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row mx-0 px-0 border-top"
+                                id="___Psikolojik_Danismanlik_ve_Rehberlik_Hizmetleri_Hakkinda_Duyuru">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">08 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/___Psikolojik_Danismanlik_ve_Rehberlik_Hizmetleri_Hakkinda_Duyuru"
+                                        title="&#x1F4E2; Psikolojik Dan&#x131;&#x15F;manl&#x131;k ve Rehberlik Hizmetleri Hakk&#x131;nda Duyuru">
+                                        &#x1F4E2; Psikolojik Dan&#x131;&#x15F;manl&#x131;k ve
+                                        Rehberlik Hizmetleri Hakk&#x131;nda Duyuru
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row mx-0 px-0 border-top"
+                                id="BM400_Bitirme_calismasi_derslerini_alan_ogrencilerin_dikkatine">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">07 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/BM400_Bitirme_calismasi_derslerini_alan_ogrencilerin_dikkatine"
+                                        title="BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131; derslerini alan &#xF6;&#x11F;rencilerin dikkatine">
+                                        BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131; derslerini
+                                        alan &#xF6;&#x11F;rencilerin dikkatine
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row mx-0 px-0 border-top" id="olcme_ve_Donanim__Laboratuvari_Dersi_Deney_8_Hk_">
+                                <div class="duyuruTarih py-1 align-self-center" id="duyuru_tarih_18752">
+                                    <label class="ayinGunu">05 </label>
+                                    <label class="ayAdi">Ocak</label>
+                                </div>
+
+                                <div class="col text-justify duyuruBaslik px-0 mx-0 px-md-2 py-md-2"
+                                    style="text-justify: inter-character">
+                                    <a href="/bilgisayar/icerik/olcme_ve_Donanim__Laboratuvari_Dersi_Deney_8_Hk_"
+                                        title="&#xD6;l&#xE7;me ve Donan&#x131;m  Laboratuvar&#x131; Dersi Deney 8 Hk.">
+                                        &#xD6;l&#xE7;me ve Donan&#x131;m Laboratuvar&#x131; Dersi
+                                        Deney 8 Hk.
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="row col-12">
+                                <div class="col d-flex mt-2 justify-content-end py-2 align-items-end">
+                                    <h6 style="font-family: Montserrat-SemiBold" class="px-3">
+                                        <a href="/bilgisayar/arama/4" class="text-decoration-none"
+                                            title="Duyuru Arama Sayfası" style="color: inherit">
+                                            Duyuru Arşivi
+                                        </a>
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script type="text/javascript">
+                        var siteDomain = "bilgisayar";
+                    </script>
+
+                    <div class="col-md-10 mx-2 mt-3 border p-3 shadow">
+                        <div class="d-flex justify-content-center">
+                            <div class="col-md-12 p-1">
+                                <form method="post" action="/bilgisayar/IcerikAra" class="form">
+                                    <div class="form-row d-flex">
+                                        <div class="form-group flex-grow-1">
+                                            <input type="hidden" value="4" name="icerikTurId" />
+                                            <input autofocus name="arananMetin" type="text" id="arananMetin"
+                                                placeholder="İçerik arama..." class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-danger float-right">
+                                                <em class="fa fa-search"></em> Ara
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <h6 class="my-3">
+                            <span class="p-1">
+                                <span class="badge bg-danger p-2">61</span>
+                                Duyuru listeleniyor.
+                            </span>
+                        </h6>
+                        <div class="col pt-3">
+                            <div class="pr-0 pl-0">
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link" id="ana-gorunum-tab" data-bs-toggle="tab"
+                                            href="#ana-gorunum" role="tab" aria-controls="ana-gorunum"
+                                            aria-selected="false">
+                                            Döşeme
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link active" id="liste-gorunum-tab" data-bs-toggle="tab"
+                                            href="#liste-gorunum" role="tab" aria-controls="liste-gorunum"
+                                            aria-selected="true">
+                                            Liste
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="btn text-white" style="background: var(--menu-arka-plan)"
+                                            id="takvim-gorunum" href="/bilgisayar/Calendar/2026/1/4">Tüm İçerik
+                                            Takvimi</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade" id="ana-gorunum" role="tabpanel"
+                                        aria-labelledby="ana-gorunum-tab">
+                                        <div class="row pt-3 justify-content-center">
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-20T11:50:00" data-icerikid="37353"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_B&#xFC;t&#xFC;nleme_S&#x131;nav&#x131;_Program&#x131;_Hk__89962">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_B&#xFC;t&#xFC;nleme_S&#x131;nav&#x131;_Program&#x131;_Hk__89962">2025-2026
+                                                                G&#xFC;z D&#xF6;nemi
+                                                                B&#xFC;t&#xFC;nleme S&#x131;nav&#x131;
+                                                                Program&#x131; Hk.</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                20.01.2026 Sal&#x131;
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            2025-2026 G&#xFC;z D&#xF6;nemi
+                                                            B&#xFC;t&#xFC;nleme S&#x131;nav&#x131;
+                                                            Program&#x131; Hk.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-16T15:23:00" data-icerikid="37281"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_dersi_sunumlari_ve_listeleri_hakkinda_8b5">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_dersi_sunumlari_ve_listeleri_hakkinda_8b5">BM400
+                                                                Bitirme
+                                                                &#xC7;al&#x131;&#x15F;mas&#x131; dersi
+                                                                sunumlar&#x131; ve listeleri hakk&#x131;nda</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                16.01.2026 Cuma
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131;
+                                                            dersi sunumlar&#x131; ve listeleri
+                                                            hakk&#x131;nda
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-15T13:12:00" data-icerikid="37248"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a href="/bilgisayar/Icerik/ogrenci_Anketi__1__siniflar_icin_">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/ogrenci_Anketi__1__siniflar_icin_">&#xD6;&#x11F;renci
+                                                                Anketi (1.
+                                                                s&#x131;n&#x131;flar i&#xE7;in)</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                15.01.2026 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#xD6;&#x11F;renci Anketi (1.
+                                                            s&#x131;n&#x131;flar i&#xE7;in)
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-08T13:21:00" data-icerikid="37001"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/___Psikolojik_Danismanlik_ve_Rehberlik_Hizmetleri_Hakkinda_Duyuru">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/___Psikolojik_Danismanlik_ve_Rehberlik_Hizmetleri_Hakkinda_Duyuru">&#x1F4E2;
+                                                                Psikolojik
+                                                                Dan&#x131;&#x15F;manl&#x131;k ve Rehberlik
+                                                                Hizmetleri Hakk&#x131;nda Duyuru</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                08.01.2026 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x1F4E2; Psikolojik
+                                                            Dan&#x131;&#x15F;manl&#x131;k ve Rehberlik
+                                                            Hizmetleri Hakk&#x131;nda Duyuru
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-07T13:17:00" data-icerikid="36966"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_derslerini_alan_ogrencilerin_dikkatine">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_derslerini_alan_ogrencilerin_dikkatine">BM400
+                                                                Bitirme
+                                                                &#xC7;al&#x131;&#x15F;mas&#x131; derslerini
+                                                                alan &#xF6;&#x11F;rencilerin dikkatine</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                07.01.2026 &#xC7;ar&#x15F;amba
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            BM400 Bitirme &#xC7;al&#x131;&#x15F;mas&#x131;
+                                                            derslerini alan &#xF6;&#x11F;rencilerin
+                                                            dikkatine
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-05T12:17:00" data-icerikid="36884"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/olcme_ve_Donanim__Laboratuvari_Dersi_Deney_8_Hk_">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/olcme_ve_Donanim__Laboratuvari_Dersi_Deney_8_Hk_">&#xD6;l&#xE7;me
+                                                                ve Donan&#x131;m
+                                                                Laboratuvar&#x131; Dersi Deney 8 Hk.</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                05.01.2026 Pazartesi
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#xD6;l&#xE7;me ve Donan&#x131;m
+                                                            Laboratuvar&#x131; Dersi Deney 8 Hk.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2026-01-04T14:14:00" data-icerikid="36867"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/BM303_Bilgisayar_Mimarisi_ve_Organizasyonu_Dersi_Hk__0fd36">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/BM303_Bilgisayar_Mimarisi_ve_Organizasyonu_Dersi_Hk__0fd36">BM303
+                                                                Bilgisayar Mimarisi ve Organizasyonu
+                                                                Dersi Hk.</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                04.01.2026 Pazar
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            BM303 Bilgisayar Mimarisi ve Organizasyonu Dersi
+                                                            Hk.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-30T12:57:00" data-icerikid="36795"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_Final_S&#x131;nav&#x131;_Program&#x131;_Hk__96b01">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_Final_S&#x131;nav&#x131;_Program&#x131;_Hk__96b01">2025-2026
+                                                                G&#xFC;z D&#xF6;nemi Final
+                                                                S&#x131;nav&#x131; Program&#x131; Hk.</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                30.12.2025 Sal&#x131;
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            2025-2026 G&#xFC;z D&#xF6;nemi Final
+                                                            S&#x131;nav&#x131; Program&#x131; Hk.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-26T16:35:00" data-icerikid="36718"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_8__Deney_F&#xF6;y&#xFC;_c4332">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_8__Deney_F&#xF6;y&#xFC;_c4332">&#xD6;l&#xE7;me
+                                                                ve Donan&#x131;m
+                                                                Laboratuvar&#x131; 8. Deney F&#xF6;y&#xFC;</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                26.12.2025 Cuma
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#xD6;l&#xE7;me ve Donan&#x131;m
+                                                            Laboratuvar&#x131; 8. Deney F&#xF6;y&#xFC;
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-25T14:50:00" data-icerikid="36663"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#x201C;Gen&#xE7;_Bir_Mezunun_Deneyimleriyle_iOS_Mobil_Uygulama_Geli&#x15F;tirme&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_2df77">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="https://www.bilecik.edu.tr/galeri/36663_e052_S&#xFC;leyman_sekman_etkinlik (6).jpeg"
+                                                            alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#x201C;Gen&#xE7;_Bir_Mezunun_Deneyimleriyle_iOS_Mobil_Uygulama_Geli&#x15F;tirme&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_2df77">&#x201C;Gen&#xE7;
+                                                                Bir Mezunun Deneyimleriyle
+                                                                iOS Mobil Uygulama Geli&#x15F;tirme&#x201D;
+                                                                Sunumu Ba&#x15F;ar&#x131;yla
+                                                                Ger&#xE7;ekle&#x15F;tirildi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                25.12.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x201C;Gen&#xE7; Bir Mezunun Deneyimleriyle iOS
+                                                            Mobil Uygulama Geli&#x15F;tirme&#x201D; Sunumu
+                                                            Ba&#x15F;ar&#x131;yla
+                                                            Ger&#xE7;ekle&#x15F;tirildi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-19T14:49:00" data-icerikid="36476"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_7__Deney_F&#xF6;y&#xFC;_0a097">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_7__Deney_F&#xF6;y&#xFC;_0a097">&#xD6;l&#xE7;me
+                                                                ve Donan&#x131;m
+                                                                Laboratuvar&#x131; 7. Deney F&#xF6;y&#xFC;</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                19.12.2025 Cuma
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#xD6;l&#xE7;me ve Donan&#x131;m
+                                                            Laboratuvar&#x131; 7. Deney F&#xF6;y&#xFC;
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-18T23:19:00" data-icerikid="36443"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a href="/bilgisayar/Icerik/Bitirme_calismasi_surec_takvimi_ed1">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/Bitirme_calismasi_surec_takvimi_ed1">Bitirme
+                                                                &#xE7;al&#x131;&#x15F;mas&#x131;
+                                                                s&#xFC;re&#xE7; takvimi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                18.12.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            Bitirme &#xE7;al&#x131;&#x15F;mas&#x131;
+                                                            s&#xFC;re&#xE7; takvimi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-18T15:05:00" data-icerikid="36430"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href='/bilgisayar/Icerik/"Akademik_s&#xFC;re&#xE7;ler_ve_B&#x130;DB_&#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_06c15'>
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="https://www.bilecik.edu.tr/galeri/36430_8502_Gizem_etkinlik (5).jpeg"
+                                                            alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href='/bilgisayar/Icerik/"Akademik_s&#xFC;re&#xE7;ler_ve_B&#x130;DB_&#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_06c15'>&quot;Akademik
+                                                                s&#xFC;re&#xE7;ler ve
+                                                                B&#x130;DB
+                                                                &#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;
+                                                                Sunumu Ba&#x15F;ar&#x131;yla
+                                                                Ger&#xE7;ekle&#x15F;tirildi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                18.12.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &quot;Akademik s&#xFC;re&#xE7;ler ve B&#x130;DB
+                                                            &#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;
+                                                            Sunumu Ba&#x15F;ar&#x131;yla
+                                                            Ger&#xE7;ekle&#x15F;tirildi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-12-11T18:39:00" data-icerikid="36215"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#x201C;Android_Geli&#x15F;tirme_ve_Yaz&#x131;l&#x131;m_Ser&#xFC;veni&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_0bb17">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="https://www.bilecik.edu.tr/dosya/36215_b14d_36215_c0f1_IMG-20251211-WA0017afis.jpg"
+                                                            alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#x201C;Android_Geli&#x15F;tirme_ve_Yaz&#x131;l&#x131;m_Ser&#xFC;veni&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_0bb17">&#x201C;Android
+                                                                Geli&#x15F;tirme ve
+                                                                Yaz&#x131;l&#x131;m Ser&#xFC;veni&#x201D;
+                                                                Sunumu Ba&#x15F;ar&#x131;yla
+                                                                Ger&#xE7;ekle&#x15F;tirildi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                11.12.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x201C;Android Geli&#x15F;tirme ve
+                                                            Yaz&#x131;l&#x131;m Ser&#xFC;veni&#x201D; Sunumu
+                                                            Ba&#x15F;ar&#x131;yla
+                                                            Ger&#xE7;ekle&#x15F;tirildi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-24T11:48:00" data-icerikid="35810"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#x1F4E2;_Bi&#xE7;imsel_Diller_ve_Soyut_Makineler_Dersi_&#x2013;_K&#x131;sa_ve_Ara_S&#x131;nav_Sorular&#x131;_Yay&#x131;nland&#x131;_bd676">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#x1F4E2;_Bi&#xE7;imsel_Diller_ve_Soyut_Makineler_Dersi_&#x2013;_K&#x131;sa_ve_Ara_S&#x131;nav_Sorular&#x131;_Yay&#x131;nland&#x131;_bd676">&#x1F4E2;
+                                                                Bi&#xE7;imsel Diller ve Soyut
+                                                                Makineler Dersi &#x2013; K&#x131;sa ve Ara
+                                                                S&#x131;nav Sorular&#x131;
+                                                                Yay&#x131;nland&#x131;</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                24.11.2025 Pazartesi
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x1F4E2; Bi&#xE7;imsel Diller ve Soyut
+                                                            Makineler Dersi &#x2013; K&#x131;sa ve Ara
+                                                            S&#x131;nav Sorular&#x131;
+                                                            Yay&#x131;nland&#x131;
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-20T18:01:00" data-icerikid="35740"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/_Full_Stack_Gelistirici_Olmak__Uctan_Uca_Dusunmek__Sunumu_Basariyla_Gerceklestirildi">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="https://www.bilecik.edu.tr/galeri/35740_2b6e_WhatsApp Image 2025-11-20 at 17.24.30 (3).jpeg"
+                                                            alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/_Full_Stack_Gelistirici_Olmak__Uctan_Uca_Dusunmek__Sunumu_Basariyla_Gerceklestirildi">&#x201C;Full
+                                                                Stack Geli&#x15F;tirici Olmak:
+                                                                U&#xE7;tan Uca
+                                                                D&#xFC;&#x15F;&#xFC;nmek&#x201D; Sunumu
+                                                                Ba&#x15F;ar&#x131;yla
+                                                                Ger&#xE7;ekle&#x15F;tirildi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                20.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x201C;Full Stack Geli&#x15F;tirici Olmak:
+                                                            U&#xE7;tan Uca D&#xFC;&#x15F;&#xFC;nmek&#x201D;
+                                                            Sunumu Ba&#x15F;ar&#x131;yla
+                                                            Ger&#xE7;ekle&#x15F;tirildi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-20T17:58:00" data-icerikid="35739"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a href="/bilgisayar/Icerik/___Duyuru__ingilizce_Konusma_Etkinligi">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/___Duyuru__ingilizce_Konusma_Etkinligi">&#x1F4E2;
+                                                                Duyuru: &#x130;ngilizce
+                                                                Konu&#x15F;ma Etkinli&#x11F;i</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                20.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x1F4E2; Duyuru: &#x130;ngilizce Konu&#x15F;ma
+                                                            Etkinli&#x11F;i
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-13T17:16:00" data-icerikid="35439"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/&#x201C;Sistem_ve_A&#x11F;_Uzmanl&#x131;&#x11F;&#x131;na_Giden_Yol:_&#xD6;&#x11F;rencilikten_Profesyonelli&#x11F;e&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_a2123">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="https://www.bilecik.edu.tr/galeri/35439_699b_WhatsApp Image 2025-11-13 at 16.58.03 (3).jpeg"
+                                                            alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/&#x201C;Sistem_ve_A&#x11F;_Uzmanl&#x131;&#x11F;&#x131;na_Giden_Yol:_&#xD6;&#x11F;rencilikten_Profesyonelli&#x11F;e&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_a2123">&#x201C;Sistem
+                                                                ve A&#x11F;
+                                                                Uzmanl&#x131;&#x11F;&#x131;na Giden Yol:
+                                                                &#xD6;&#x11F;rencilikten
+                                                                Profesyonelli&#x11F;e&#x201D; Sunumu
+                                                                Ba&#x15F;ar&#x131;yla
+                                                                Ger&#xE7;ekle&#x15F;tirildi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                13.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#x201C;Sistem ve A&#x11F;
+                                                            Uzmanl&#x131;&#x11F;&#x131;na Giden Yol:
+                                                            &#xD6;&#x11F;rencilikten
+                                                            Profesyonelli&#x11F;e&#x201D; Sunumu
+                                                            Ba&#x15F;ar&#x131;yla
+                                                            Ger&#xE7;ekle&#x15F;tirildi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-13T14:14:00" data-icerikid="35428"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/olcme_ve_Donanim_Laboratuvari_Guncel_Deney_Listesi">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/olcme_ve_Donanim_Laboratuvari_Guncel_Deney_Listesi">&#xD6;l&#xE7;me
+                                                                ve Donan&#x131;m
+                                                                Laboratuvar&#x131; G&#xFC;ncel Deney
+                                                                Listesi</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                13.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            &#xD6;l&#xE7;me ve Donan&#x131;m
+                                                            Laboratuvar&#x131; G&#xFC;ncel Deney Listesi
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-13T11:24:00" data-icerikid="35419"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/Kariyer_Danismanligi_Almak_isteyen_ogrencilerin_Dikkatine_114">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/Kariyer_Danismanligi_Almak_isteyen_ogrencilerin_Dikkatine_114">Kariyer
+                                                                Dan&#x131;&#x15F;manl&#x131;&#x11F;&#x131;
+                                                                Almak &#x130;steyen &#xD6;&#x11F;rencilerin
+                                                                Dikkatine</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                13.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            Kariyer
+                                                            Dan&#x131;&#x15F;manl&#x131;&#x11F;&#x131; Almak
+                                                            &#x130;steyen &#xD6;&#x11F;rencilerin Dikkatine
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-lg-3 p-2 icerik-eleman"
+                                                data-tarih="2025-11-13T09:49:00" data-icerikid="35412"
+                                                data-icerikturid="4">
+                                                <div class="card p-0">
+                                                    <a
+                                                        href="/bilgisayar/Icerik/Yaz_Donemi_Staj_Mulakati_Gerceklesmeyen_ogrencilerin_Dikkatine">
+                                                        <img class="card-img-top"
+                                                            style="max-height: 20rem; object-fit: cover"
+                                                            src="/image/ust-logo-duz.jpg" alt="..." />
+                                                    </a>
+
+                                                    <div class="card-body p-2" style="min-height: 11rem">
+                                                        <h6 class="card-title" style="min-height: 3rem !important">
+                                                            <a class="text-decoration-none" style="color: inherit"
+                                                                href="/bilgisayar/Icerik/Yaz_Donemi_Staj_Mulakati_Gerceklesmeyen_ogrencilerin_Dikkatine">Yaz
+                                                                D&#xF6;nemi Staj M&#xFC;lakat&#x131;
+                                                                Ger&#xE7;ekle&#x15F;meyen
+                                                                &#xD6;&#x11F;rencilerin Dikkatine</a>
+                                                        </h6>
+                                                        <label class="card-text">
+                                                            <small class="text-muted">
+                                                                <em class="fa fa-calendar-alt simge-daire p-1"></em>
+                                                                13.11.2025 Per&#x15F;embe
+                                                            </small>
+                                                        </label>
+                                                        <p class="card-text"
+                                                            style="text-align: justify; display: block">
+                                                            Yaz D&#xF6;nemi Staj M&#xFC;lakat&#x131;
+                                                            Ger&#xE7;ekle&#x15F;meyen
+                                                            &#xD6;&#x11F;rencilerin Dikkatine
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade active show" id="liste-gorunum" role="tabpanel"
+                                        aria-labelledby="liste-gorunum-tab">
+                                        <div class="col-12 pt-3">
+                                            <div class="d-flex justify-content-between">
+                                                <label>
+                                                    <small class="tarih-aralik">20.01.2026 11:50:18</small>
+                                                    <small> - </small>
+                                                    <small class="son-tarih">11.12.2025 18:39:00</small>
+                                                    <small>arası kayıtlar listeleniyor.</small>
+                                                </label>
+                                                <ul class="pagination small d-flex flex-wrap">
+                                                    <li class="page-item">
+                                                        <a class="page-link tablo-sayfa-eleman onceki-sayfa-arama-sonuc"
+                                                            data-sayfano="1" href="#" aria-label="Previous">
+                                                            <span aria-hidden="true">&laquo;</span>
+                                                            <span class="sr-only">Previous</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="page-item d-flex 1" data-sayfano="1">
+                                                        <a data-sayfano="1" class="page-link tablo-sayfa-eleman 1">1</a>
+                                                    </li>
+
+                                                    <li class="page-item">
+                                                        <a class="page-link tablo-sayfa-eleman sonraki-sayfa-arama-sonuc"
+                                                            data-sayfano="2" href="#" aria-label="Next">
+                                                            <span aria-hidden="true">&raquo;</span>
+                                                            <span class="sr-only">Next</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="page-item">
+                                                        <a class="page-link sonraki-content btn btn-sm btn-info"
+                                                            title="Daha eski kayıtları getir" data-sayfano="2" href="#"
+                                                            aria-label="Next">
+                                                            <i class="fas fa-angle-right"></i>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            <table class="table table-hover table-sm table-striped arama-sonuc-tablo"
+                                                data-sayfasayisi="0" data-aktifsayfano="1" data-icerikturid="4">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sıra</th>
+                                                        <th>Tarih</th>
+                                                        <th>Başlık</th>
+
+                                                        <th class="text-center">Ekli Dosya</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr class="1" style="" data-icerikid="37353"
+                                                        data-tarih="2026-01-20T11:50:00" data-icerikturid="4">
+                                                        <td>1</td>
+                                                        <td><small>20 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_B&#xFC;t&#xFC;nleme_S&#x131;nav&#x131;_Program&#x131;_Hk__89962">2025-2026
+                                                                    G&#xFC;z D&#xF6;nemi
+                                                                    B&#xFC;t&#xFC;nleme S&#x131;nav&#x131;
+                                                                    Program&#x131; Hk.</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="37281"
+                                                        data-tarih="2026-01-16T15:23:00" data-icerikturid="4">
+                                                        <td>2</td>
+                                                        <td><small>16 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_dersi_sunumlari_ve_listeleri_hakkinda_8b5">BM400
+                                                                    Bitirme
+                                                                    &#xC7;al&#x131;&#x15F;mas&#x131; dersi
+                                                                    sunumlar&#x131; ve listeleri
+                                                                    hakk&#x131;nda</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="37248"
+                                                        data-tarih="2026-01-15T13:12:00" data-icerikturid="4">
+                                                        <td>3</td>
+                                                        <td><small>15 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/ogrenci_Anketi__1__siniflar_icin_">&#xD6;&#x11F;renci
+                                                                    Anketi (1.
+                                                                    s&#x131;n&#x131;flar i&#xE7;in)</a></small>
+                                                        </td>
+                                                        <td class="text-center"></td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="37001"
+                                                        data-tarih="2026-01-08T13:21:00" data-icerikturid="4">
+                                                        <td>4</td>
+                                                        <td><small>08 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/___Psikolojik_Danismanlik_ve_Rehberlik_Hizmetleri_Hakkinda_Duyuru">&#x1F4E2;
+                                                                    Psikolojik
+                                                                    Dan&#x131;&#x15F;manl&#x131;k ve Rehberlik
+                                                                    Hizmetleri Hakk&#x131;nda Duyuru</a></small>
+                                                        </td>
+                                                        <td class="text-center"></td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36966"
+                                                        data-tarih="2026-01-07T13:17:00" data-icerikturid="4">
+                                                        <td>5</td>
+                                                        <td><small>07 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/BM400_Bitirme_calismasi_derslerini_alan_ogrencilerin_dikkatine">BM400
+                                                                    Bitirme
+                                                                    &#xC7;al&#x131;&#x15F;mas&#x131; derslerini
+                                                                    alan &#xF6;&#x11F;rencilerin dikkatine</a></small>
+                                                        </td>
+                                                        <td class="text-center"></td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36884"
+                                                        data-tarih="2026-01-05T12:17:00" data-icerikturid="4">
+                                                        <td>6</td>
+                                                        <td><small>05 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/olcme_ve_Donanim__Laboratuvari_Dersi_Deney_8_Hk_">&#xD6;l&#xE7;me
+                                                                    ve Donan&#x131;m
+                                                                    Laboratuvar&#x131; Dersi Deney 8 Hk.</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36867"
+                                                        data-tarih="2026-01-04T14:14:00" data-icerikturid="4">
+                                                        <td>7</td>
+                                                        <td><small>04 Ocak 2026</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/BM303_Bilgisayar_Mimarisi_ve_Organizasyonu_Dersi_Hk__0fd36">BM303
+                                                                    Bilgisayar Mimarisi ve Organizasyonu
+                                                                    Dersi Hk.</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    4</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36795"
+                                                        data-tarih="2025-12-30T12:57:00" data-icerikturid="4">
+                                                        <td>8</td>
+                                                        <td><small>30 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/2025_2026_G&#xFC;z_D&#xF6;nemi_Final_S&#x131;nav&#x131;_Program&#x131;_Hk__96b01">2025-2026
+                                                                    G&#xFC;z D&#xF6;nemi Final
+                                                                    S&#x131;nav&#x131; Program&#x131; Hk.</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36718"
+                                                        data-tarih="2025-12-26T16:35:00" data-icerikturid="4">
+                                                        <td>9</td>
+                                                        <td><small>26 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_8__Deney_F&#xF6;y&#xFC;_c4332">&#xD6;l&#xE7;me
+                                                                    ve Donan&#x131;m
+                                                                    Laboratuvar&#x131; 8. Deney
+                                                                    F&#xF6;y&#xFC;</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36663"
+                                                        data-tarih="2025-12-25T14:50:00" data-icerikturid="4">
+                                                        <td>10</td>
+                                                        <td><small>25 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/&#x201C;Gen&#xE7;_Bir_Mezunun_Deneyimleriyle_iOS_Mobil_Uygulama_Geli&#x15F;tirme&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_2df77">&#x201C;Gen&#xE7;
+                                                                    Bir Mezunun
+                                                                    Deneyimleriyle iOS Mobil Uygulama
+                                                                    Geli&#x15F;tirme&#x201D; Sunumu
+                                                                    Ba&#x15F;ar&#x131;yla
+                                                                    Ger&#xE7;ekle&#x15F;tirildi</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    9</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36476"
+                                                        data-tarih="2025-12-19T14:49:00" data-icerikturid="4">
+                                                        <td>11</td>
+                                                        <td><small>19 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/&#xD6;l&#xE7;me_ve_Donan&#x131;m_Laboratuvar&#x131;_7__Deney_F&#xF6;y&#xFC;_0a097">&#xD6;l&#xE7;me
+                                                                    ve Donan&#x131;m
+                                                                    Laboratuvar&#x131; 7. Deney
+                                                                    F&#xF6;y&#xFC;</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    1</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36443"
+                                                        data-tarih="2025-12-18T23:19:00" data-icerikturid="4">
+                                                        <td>12</td>
+                                                        <td><small>18 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/Bitirme_calismasi_surec_takvimi_ed1">Bitirme
+                                                                    &#xE7;al&#x131;&#x15F;mas&#x131;
+                                                                    s&#xFC;re&#xE7; takvimi</a></small>
+                                                        </td>
+                                                        <td class="text-center"></td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36430"
+                                                        data-tarih="2025-12-18T15:05:00" data-icerikturid="4">
+                                                        <td>13</td>
+                                                        <td><small>18 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href='/bilgisayar/Icerik/"Akademik_s&#xFC;re&#xE7;ler_ve_B&#x130;DB_&#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_06c15'>&quot;Akademik
+                                                                    s&#xFC;re&#xE7;ler ve
+                                                                    B&#x130;DB
+                                                                    &#xE7;al&#x131;&#x15F;malar&#x131;&#x201D;
+                                                                    Sunumu Ba&#x15F;ar&#x131;yla
+                                                                    Ger&#xE7;ekle&#x15F;tirildi</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    9</small></small>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="1" style="" data-icerikid="36215"
+                                                        data-tarih="2025-12-11T18:39:00" data-icerikturid="4">
+                                                        <td>14</td>
+                                                        <td><small>11 Aral&#x131;k 2025</small></td>
+                                                        <td>
+                                                            <small><a style="color: inherit"
+                                                                    class="text-decoration-none"
+                                                                    href="/bilgisayar/Icerik/&#x201C;Android_Geli&#x15F;tirme_ve_Yaz&#x131;l&#x131;m_Ser&#xFC;veni&#x201D;_Sunumu_Ba&#x15F;ar&#x131;yla_Ger&#xE7;ekle&#x15F;tirildi_0bb17">&#x201C;Android
+                                                                    Geli&#x15F;tirme ve
+                                                                    Yaz&#x131;l&#x131;m Ser&#xFC;veni&#x201D;
+                                                                    Sunumu Ba&#x15F;ar&#x131;yla
+                                                                    Ger&#xE7;ekle&#x15F;tirildi</a></small>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <small><i class="fas fa-paperclip"></i><small>
+                                                                    9</small></small>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input name="__RequestVerificationToken" type="hidden"
+                        value="CfDJ8LoibgUFYpJJnZrHWgjj85LgQ4984YP-PIQZH0mSyMZpEv74-jC91hzlRwZGG8aQ2OvpFq4cTOr-Ac4jVVNYqSdc55Y6ovuTfpFIRyY97hmr-STjlAKgSNPcU6j0kPAQb4BaeQsEeSae7-kQgd99YVs" />
+                </div>
+            </div>
+
+            <script src="https://cdn.bilecik.edu.tr/jquery/jquery-3.6.0.min.js" type="text/javascript"></script>
+
+            <script src="/Script/icerik-ara.js"></script>
+
+            <div class="row mx-auto px-0 py-0 m-0 footer-dis-div">
+                <footer class="m-0 p-0 d-flex align-items-end" id="footer">
+                    <img src="/Image/loader-img.gif" style="
+                position: absolute;
+                width: 100vw;
+                z-index: -1;
+                max-height: 900px;
+              " width="1922" height="1022" fetchpriority="high" class="lazy" data-original="/Image/footer.jpg" />
+
+                    <div class="d-flex w-100 align-items-end py-0 px-4" id="footer-div">
+                        <div class="row col-12 align-items-stretch pt-4 p-0 px-4 m-0" id="footer-ic-div">
+                            <div class="col footer-ic-div px-4 py-4 d-flex flex-column justify-content-end"
+                                style="text-align: left; border-left: none" id="iletisim-kutu">
+                                <div class="d-flex mb-2 align-items-center justify-content-start">
+                                    <img src="/dosya/FooterLogo_81fc_alt.webp"
+                                        style="max-width: 4rem; border-radius: 0.3rem" /><label
+                                        class="px-3 text-white font-weight-bold">Bilgisayar
+                                        M&#xFC;hendisli&#x11F;i</label>
+                                </div>
+
+                                <a title="Adres" class="p-0 text-white text-decoration-none"><i
+                                        class="fa-solid fa-location-dot"></i> Bilecik &#x15E;eyh
+                                    Edebali &#xDC;niversitesi, M&#xFC;hendislik Fak&#xFC;ltesi,
+                                    Bilgisayar M&#xFC;hendisli&#x11F;i B&#xF6;l&#xFC;m&#xFC;,
+                                    G&#xFC;l&#xFC;mbe Yerle&#x15F;kesi, C-Blok, Kat 3, 11210
+                                    G&#xFC;l&#xFC;mbe/B&#x130;LEC&#x130;K</a>
+                                <a title="Telefon" class="p-0 text-white text-decoration-none"><i
+                                        class="fa fa-phone"></i> (0228) 214 1242
+                                    (B&#xF6;l&#xFC;m Sekreteri)</a>
+                                <a title="E-tebligat adresi"
+                                    class="p-0 text-white text-decoration-none"><strong>E-tebligat:
+                                    </strong>35476-96741-22941</a>
+                                <a title="Belgegeçer numarası" class="p-0 text-white text-decoration-none"><i
+                                        class="fa-solid fa-fax"></i> 0 228 214 12 22</a>
+                                <a title="Eposta adresi" class="p-0 text-white text-decoration-none"><i
+                                        class="fa-solid fa-envelope"></i>
+                                    bm_bb@bilecik.edu.tr</a>
+                                <a title="Kayıtlı Eposta Adresi" class="p-0 text-white text-decoration-none"><i
+                                        class="fa-solid fa-envelope-circle-check"></i>
+                                    bseu@hs01.kep.tr</a>
+                            </div>
+
+                            <div class="col footer-ic-div py-4 d-flex flex-column justify-content-end">
+                                <div class="justify-content-end align-self-center">
+                                    <p class="m-0"><i class="fa fa-phone"></i> SANTRAL</p>
+                                    <a title="Telefon" class="p-0 mb-3 text-white text-decoration-none">
+                                        (0228) 214 1242 (B&#xF6;l&#xFC;m Sekreteri)</a>
+                                    <a class="btn btn-sm text-white badge-pill mt-3"
+                                        href="https://bilecik.edu.tr/bilgisayar/oneri"
+                                        style="background: var(--turuncu-koyu)"><i class="fas fa-mail"></i>BİZE
+                                        YAZIN</a>
+                                    <div class="d-flex justify-content-center footer-sosyal-ikon py-3"
+                                        id="footer-sosyal-medya-ikon-liste">
+                                        <a class="p-1 text-white text-decoration-none"
+                                            href="https://www.facebook.com/bilecik.bilgmuh.7" title="Facebook"
+                                            target="_blank" style="font-size: 1rem; color: white"><em
+                                                class="fab fa-facebook-f simge-daire py-2 mb-0"></em></a>
+                                        <a class="p-1 text-white text-decoration-none"
+                                            href="https://twitter.com/bseubilgmuh" title="Twitter" target="_blank"
+                                            style="font-size: 1rem; color: white"><em
+                                                class="fab fa-twitter simge-daire py-2 mb-0"></em></a>
+                                        <a class="p-1 text-white text-decoration-none"
+                                            href="https://www.instagram.com/bseubilgmuh/" title="Instagram"
+                                            target="_blank" style="font-size: 1rem; color: white"><em
+                                                class="fab fa-instagram simge-daire py-2 mb-0"></em></a>
+                                        <a class="p-1 text-white text-decoration-none"
+                                            href="https://www.youtube.com/channel/UCgwHzd1y10sgOwtpf1zMckQ"
+                                            title="Youtube" target="_blank" style="font-size: 1rem; color: white"><em
+                                                class="fab fa-youtube simge-daire py-2 mb-0"></em></a>
+                                    </div>
+                                    <a class="btn bagde-pill text-white text-decoration-none">Çerez Bilgi</a>
+                                </div>
+                            </div>
+
+                            <div class="col d-flex flex-column justify-content-end align-items-end mb-3 pt-3"
+                                style="order: 4">
+                                <img src="/Image/kapicizim.svg" style="max-width: 16rem" />
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+            <div class="fixed-bottom" id="cerezOnay" style="display: none !important; z-index: 25">
+                <div class="alert alert-warning col mb-0" role="alert">
+                    <p>
+                        Bu siteyi kullanarak
+                        <a target="_blank"
+                            href="http://www.bilecik.edu.tr/galeri/63_ffa6_7.Gizlilik%20ve%20%C3%87erez%20Politikas%C4%B1_4064465.docx">çerez
+                            politikalarını</a>
+                        kabul etmiş sayılırsınız.
+                    </p>
+                    <hr />
+                    <button type="button" class="btn btn-sm btn-danger cerez-onay">
+                        <em class="fa fa-check"></em> ÇEREZ POLİTİKASINI ONAYLA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDN için erken bağlantı -->
+    <link rel="preconnect" href="https://cdn.bilecik.edu.tr" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.bilecik.edu.tr" />
+
+    <!-- jQuery: kritik, yüksek öncelik -->
+    <script src="https://cdn.bilecik.edu.tr/jquery/jquery-3.6.0.min.js" fetchpriority="high"></script>
+
+    <!-- jQuery UI (defer, jQuery yüklendikten sonra çalışacak) -->
+    <script defer src="https://cdn.bilecik.edu.tr/jquery/jquery-ui/jquery-ui-1.14.1/jquery-ui.min.js"></script>
+
+    <!-- Popper (Bootstrap 5 için) -->
+    <script defer src="https://cdn.bilecik.edu.tr/Popper/v2/popper.js"></script>
+
+    <!-- Bootstrap 5 (defer) -->
+    <script defer src="https://cdn.bilecik.edu.tr/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+
+    <!-- Lazyload (defer, kritik değil) -->
+    <script defer src="https://cdn.bilecik.edu.tr/jquery_lazyload/jquery.lazyload.js"></script>
+
+    <!-- Kendi scriptlerin: jQuery’ye bağımlı olanlar jQuery’den sonra -->
+    <script defer src="/Script/mini-surgu.js"></script>
+    <script defer src="/Script/anaSurgu.js"></script>
+    <script defer src="/Script/anaSayfa.js"></script>
+    <script defer src="/Script/haber.js"></script>
+    <script defer src="/Script/menu.js"></script>
+</body>
+
+</html>

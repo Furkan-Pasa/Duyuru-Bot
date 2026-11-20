@@ -3,30 +3,89 @@
 SQLite veritabanı işlemleri (CRUD) modülü.
 
 Bu sınıf, duyuruların SQLite veritabanına kaydedilmesi,
-kontrol edilmesi ve sorgulanması işlemlerini yönetir.
+kontrol edilmesi, bildirim kuyruğunun yönetilmesi ve sorgulanması
+işlemlerini yönetir.
 
-ÖNEMLİ: Thread-safe olması için 'threading.local()' kullanarak
-her thread'e (örn: her scraper görevi) özel bir veritabanı bağlantısı sağlar.
+Eşzamanlılık: Paylaşılan tek bir SQLite bağlantısı (WAL modunda) kullanılır
+ve tüm veritabanı işlemleri `threading.RLock` ile korunur.
 """
 
 import os
 import sqlite3
 import hashlib
 import threading
+from typing import Dict, List, Optional
+
 import bot_config
-from typing import Dict, Optional
-from core.logger import log_debug, log_info, log_warning, log_critical, log_database_error
+from core.logger import log_debug, log_info, log_critical, log_database_error
+
+# Veritabanı şema sürümü (PRAGMA user_version)
+SCHEMA_VERSION = 1
+
+# Zaman damgaları SQLite'ın CURRENT_TIMESTAMP değeriyle (UTC) tutulur.
+SCHEMA_SQL = '''
+    CREATE TABLE IF NOT EXISTS announcements (
+        id                   INTEGER PRIMARY KEY,
+        site_key             TEXT NOT NULL,     -- Config'deki kalıcı site anahtarı
+        announcement_id      TEXT NOT NULL,     -- Sitedeki duyuru kimliği
+        title                TEXT NOT NULL,
+        url                  TEXT NOT NULL,
+        published_date       TEXT,              -- Yayın tarihi (ISO YYYY-MM-DD)
+        content_text         TEXT,              -- Normalize edilmiş duyuru içeriği
+        content_hash         TEXT,              -- İçeriğin SHA-256 hash'i (NULL: içerik bilinmiyor)
+        pending_notification TEXT CHECK (pending_notification IN ('new', 'update')),  -- Gönderim bekleyen bildirim tipi
+        notify_attempts      INTEGER NOT NULL DEFAULT 0,                              -- Başarısız gönderim denemesi sayısı
+        first_seen_at        TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at           TEXT,              -- Son başlık/içerik değişikliği
+        notified_at          TEXT,              -- Son başarılı Telegram gönderimi
+        UNIQUE (site_key, announcement_id)
+    )
+'''
+
+PENDING_INDEX_SQL = '''
+    CREATE INDEX IF NOT EXISTS idx_announcements_pending
+        ON announcements (site_key, id)
+        WHERE pending_notification IS NOT NULL
+'''
+
 
 class Database:
     def __init__(self):
-        """Veritabanı yolunu ayarlar ve tabloları oluşturur/kontrol eder."""
+        """Veritabanı yolunu ayarlar, klasörü (yoksa) oluşturur ve şemayı hazırlar."""
         self.db_path = bot_config.DATABASE_PATH
-        self.local_storage = threading.local()  # Thread-local depolama
+        self._lock = threading.RLock()
+        self._conn: Optional[sqlite3.Connection] = None
 
-        # Veritabanı dosyasının bulunduğu 'data' klasörünü kontrol et
+        self._ensure_directory()
+        self._create_schema()
+
+    @property
+    def conn(self) -> sqlite3.Connection:
+        """
+        Paylaşılan SQLite bağlantısını (yoksa WAL modunda açarak) döndürür.
+
+        Thread-safe erişim için `self._lock` ile korunur; `close()` sonrasında
+        yeniden erişilirse bağlantı otomatik olarak yeniden açılır.
+        """
+        with self._lock:
+            if self._conn is None:
+                try:
+                    connection = sqlite3.connect(
+                        self.db_path,
+                        check_same_thread=False
+                    )
+                    connection.row_factory = sqlite3.Row
+                    connection.execute("PRAGMA journal_mode=WAL")
+                    self._conn = connection
+                    log_debug("✅ DB Bağlantısı (WAL modu) oluşturuldu.")
+                except Exception as e:
+                    log_database_error("🛑 Veritabanı bağlantı", e)
+                    raise
+            return self._conn
+
+    def _ensure_directory(self):
+        """Veritabanı dosyasının bulunacağı klasörü (yoksa) oluşturur."""
         db_dir = os.path.dirname(self.db_path)
-        
-        # Eğer 'data' klasörü yoksa ve yol boş değilse, oluştur
         if db_dir and not os.path.exists(db_dir):
             try:
                 os.makedirs(db_dir)
@@ -35,282 +94,267 @@ class Database:
                 log_critical(f"🛑 '{db_dir}' klasörü oluşturulamadı: {e}")
                 raise
 
-        self.create_tables()
-        self._check_and_migrate_db()
-    
-    @property
-    def conn(self) -> sqlite3.Connection:
-        """
-        Thread'e özel (thread-local) veritabanı bağlantısını yönetir.
-
-        Bu property'ye her thread ilk kez eriştiğinde, o thread için
-        yeni bir 'sqlite3.connect' bağlantısı oluşturur ve 'self.local_storage'
-        üzerinde saklar. Sonraki erişimlerde mevcut bağlantıyı döndürür.
-
-        Bu, 'BackgroundScheduler'daki her bir scraper iş parçacığının
-        kendi izole bağlantısına sahip olmasını sağlar.
-        """
-        # Bu thread için 'conn' adında bir attribute yoksa
-        if not hasattr(self.local_storage, 'conn'):
+    def _create_schema(self):
+        """'announcements' tablosunu, kısmi kuyruk indeksini ve şema sürümünü oluşturur."""
+        with self._lock:
             try:
-                # Yeni bir bağlantı oluştur ve bu thread'in deposuna kaydet
-                connection = sqlite3.connect(
-                    self.db_path,
-                    check_same_thread=False  # Gerekli (bağlantı thread-local)
-                )
-                connection.row_factory = sqlite3.Row  # Sonuçları dict gibi alabilmek için
-                self.local_storage.conn = connection
-                log_debug(f"✅ DB Bağlantısı (Thread: {threading.current_thread().name}) oluşturuldu.")
-            except Exception as e:
-                log_database_error("🛑 Veritabanı bağlantı", e)
-                raise
-        
-        # Bu thread'in özel bağlantısını döndür
-        return self.local_storage.conn
-
-    def _check_and_migrate_db(self):
-        """
-        Veritabanı şemasını kontrol eder ve gerekirse (örn: yeni sütun) günceller.
-        'raw_content' sütununun varlığını kontrol eder.
-        """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute("PRAGMA table_info(announcements)")
-            columns = [row['name'] for row in cursor.fetchall()]
-            
-            # Eğer 'raw_content' sütunu yoksa, ekle
-            if 'raw_content' not in columns:
-                log_warning("⚠️ [DATABASE] 'raw_content' sütunu bulunamadı, tablo güncelleniyor (ALTER TABLE)...")
-                cursor.execute("ALTER TABLE announcements ADD COLUMN raw_content TEXT")
+                cursor = self.conn.cursor()
+                cursor.execute(SCHEMA_SQL)
+                cursor.execute(PENDING_INDEX_SQL)
+                cursor.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
                 self.conn.commit()
-                log_info("✅ [DATABASE] 'raw_content' sütunu eklendi.")
-                
-        except Exception as e:
-            log_database_error("🛑 Veritabanı göç (migration)", e)
-            self.conn.rollback()
+                log_debug(f"✅ Veritabanı şeması hazır (v{SCHEMA_VERSION})")
+            except Exception as e:
+                log_database_error("🛑 Şema oluşturma", e)
+                raise
 
-    def create_tables(self):
+    def save_announcement(self, site_key: str, announcement: Dict, pending: Optional[str]) -> bool:
         """
-        'announcements' tablosunun var olmasını sağlar.
-        (IF NOT EXISTS)
-        """
-        try:
-            cursor = self.conn.cursor()
-            
-            # Ana duyuru tablosu
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS announcements (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    site_name TEXT NOT NULL,
-                    announcement_id TEXT NOT NULL,         -- Scraper'dan gelen ID (örn: '12345')
-                    title TEXT NOT NULL,
-                    url TEXT,
-                    date TEXT,
-                    content_hash TEXT,                     -- İçeriğin MD5 hash'i
-                    raw_content TEXT,                      -- İçeriğin ham HTML'i (None olabilir)
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(site_name, announcement_id)     -- Bir site_name + ann_id çifti sadece 1 kez
-                )
-            ''')
-            
-            self.conn.commit()
-            log_debug("✅ Veritabanı tabloları hazır")
-        except Exception as e:
-            log_database_error("🛑 Tablo oluşturma", e)
-            raise
-    
-    def save_announcement(self, site_name: str, announcement: Dict) -> bool:
-        """
-        Yeni bir duyuruyu veritabanına kaydeder (veya görmezden gelir).
+        Yeni bir duyuruyu veritabanına kaydeder.
 
-        'INSERT OR IGNORE' kullanır. Eğer 'UNIQUE(site_name, announcement_id)'
-        kısıtlaması ihlal edilirse (kayıt zaten varsa), hata vermez,
-        sadece işlem yapmaz ve 'cursor.rowcount' 0 döner.
+        'INSERT OR IGNORE' kullanır; (site_key, announcement_id) çifti zaten
+        kayıtlıysa işlem yapılmaz. İçerik yoksa `content_hash` NULL kalır.
 
-        'content_hash' oluşturulurken `generate_hash` kullanılır; eğer
-        'content' (içerik) yoksa 'title' (başlık) hash'lenir.
-        
         Args:
-            site_name: Site adı (örn: 'BŞEÜ Bilgisayar Müh.')
-            announcement: Scraper'dan gelen duyuru sözlüğü. ('content' ham HTML veya None içerebilir)
-            
+            site_key: Config'deki site anahtarı (örn: 'bseu_bilgisayar').
+            announcement: Scraper'dan gelen duyuru sözlüğü ('content' None olabilir).
+            pending: Bildirim kuyruğuna alınacaksa 'new'; bildirimsiz kayıt için None.
+
         Returns:
-            bool: Kayıt başarılı (yeni eklendi) ise True,
-                  kayıt zaten vardı (ignore edildi) veya hata olduysa False.
+            bool: Yeni kayıt eklendiyse True, kayıt zaten varsa veya hata olduysa False.
         """
-        try:
-            cursor = self.conn.cursor()
-            
-            # 'content' None olabilir (örn: içerik bulunamadı)
-            raw_html = announcement.get('content')
-            
-            # İçerik yoksa başlığı hash'le (fallback)
-            content_hash = self.generate_hash(
-                raw_html, # Bu None ise, fallback kullanılır
-                fallback_text=announcement.get('title', '')
-            )
-            
-            cursor.execute('''
-                INSERT OR IGNORE INTO announcements
-                (site_name, announcement_id, title, url, date, content_hash, raw_content)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                site_name,
-                announcement.get('id'),
-                announcement.get('title'),
-                announcement.get('url'),
-                announcement.get('date'),
-                content_hash,
-                raw_html
-            ))
-            
-            self.conn.commit()
-            # rowcount > 0 sadece yeni bir satır eklendiyse True döner
-            return cursor.rowcount > 0
-            
-        except Exception as e:
-            log_database_error(f"🛑 Duyuru kaydetme ({announcement.get('id')})", e)
-            self.conn.rollback()
-            return False
-    
-    
-    def get_announcement_by_id(self, site_name: str, announcement_id: str, url: Optional[str] = None) -> Optional[Dict]:
+        content = announcement.get('content')
+        with self._lock:
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute('''
+                    INSERT OR IGNORE INTO announcements
+                        (site_key, announcement_id, title, url, published_date,
+                         content_text, content_hash, pending_notification)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    site_key,
+                    announcement['id'],
+                    announcement['title'],
+                    announcement['url'],
+                    announcement.get('date') or None,
+                    content,
+                    self.generate_hash(content),
+                    pending,
+                ))
+                self.conn.commit()
+                return cursor.rowcount > 0
+
+            except Exception as e:
+                log_database_error(f"🛑 Duyuru kaydetme ({announcement.get('id')})", e)
+                self.conn.rollback()
+                return False
+
+    def get_announcement_by_id(self, site_key: str, announcement_id: str) -> Optional[Dict]:
         """
-        Belirli bir duyuruyu (site adı ve duyuru ID'si ile) veritabanından çeker.
-        
-        ID ile kayıt bulunamazsa ve `url` verilmişse aynı site ve URL'e sahip
-        mevcut kaydı kontrol eder; eşleşme varsa kaydın `announcement_id`
-        değerini yeni ID ile güncelleyerek döndürür.
-        
+        Belirli bir duyuruyu (site anahtarı ve duyuru ID'si ile) veritabanından çeker.
+
         Args:
-            site_name: Site adı
-            announcement_id: Duyuru ID'si
-            url: Duyuru URL'i (opsiyonel, URL bazlı eşleştirme için)
-            
+            site_key: Config'deki site anahtarı.
+            announcement_id: Duyuru ID'si.
+
         Returns:
             Duyuru bilgileri (dict) veya bulunamazsa None.
         """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute('''
-                SELECT * FROM announcements
-                WHERE site_name = ? AND announcement_id = ?
-            ''', (site_name, announcement_id))
-            
-            row = cursor.fetchone()
-            if row:
-                return dict(row)
-                
-            if url:
+        with self._lock:
+            try:
+                cursor = self.conn.cursor()
                 cursor.execute('''
                     SELECT * FROM announcements
-                    WHERE site_name = ? AND url = ?
-                    ORDER BY id DESC LIMIT 1
-                ''', (site_name, url))
+                    WHERE site_key = ? AND announcement_id = ?
+                ''', (site_key, announcement_id))
                 row = cursor.fetchone()
-                if row:
-                    cursor.execute('''
-                        UPDATE announcements
-                        SET announcement_id = ?
-                        WHERE id = ?
-                    ''', (announcement_id, row['id']))
-                    self.conn.commit()
-                    record = dict(row)
-                    record['announcement_id'] = announcement_id
-                    log_debug(f"🔄 [DATABASE] [{site_name}] Duyuru ID güncellendi: {row['announcement_id']} -> {announcement_id}")
-                    return record
-                    
-            return None
-            
-        except Exception as e:
-            log_database_error("🛑 Duyuru getirme (by_id)", e)
-            self.conn.rollback()
-            return None
+                return dict(row) if row else None
 
-    def update_announcement(self, site_name: str, announcement_id: str, new_title: str, new_hash: str, new_raw_content: Optional[str], new_url: Optional[str] = None) -> bool:
+            except Exception as e:
+                log_database_error("🛑 Duyuru getirme (by_id)", e)
+                return None
+
+    def update_announcement(
+        self,
+        site_key: str,
+        announcement_id: str,
+        title: str,
+        url: str,
+        content_hash: Optional[str],
+        content_text: Optional[str],
+        queue_update: bool,
+    ) -> bool:
         """
-        Mevcut bir duyurunun başlığını, URL'ini ve/veya içerik hash'ini günceller.
-        
+        Mevcut bir duyurunun başlığını, URL'ini ve içeriğini günceller.
+
         Args:
-            site_name: Site adı
-            announcement_id: Duyuru ID'si
-            new_title: Yeni başlık
-            new_hash: Yeni içerik hash'i
-            new_raw_content: Yeni ham HTML (veya None)
-            new_url: Yeni duyuru URL'i (None ise mevcut URL korunur)
-            
+            site_key: Config'deki site anahtarı.
+            announcement_id: Duyuru ID'si.
+            title: Güncel başlık.
+            url: Güncel duyuru URL'i.
+            content_hash: Güncel içerik hash'i (içerik bilinmiyorsa None).
+            content_text: Güncel içerik (bilinmiyorsa None).
+            queue_update: Bildirim gerektiren bir değişiklikse True; `updated_at`
+                güncellenir ve kayıt 'update' bildirimi olarak kuyruğa alınır.
+                Kayıt zaten kuyruktaysa mevcut bildirim tipi korunur (henüz
+                gönderilmemiş bir 'new' bildirimi güncel bilgilerle 'new' olarak gider).
+                False ise bildirim gerektirmeyen bir veri tamamlamasıdır
+                (örn: içeriğin ilk kez alınması).
+
         Returns:
             bool: Güncelleme başarılıysa True, değilse False.
         """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute('''
-                UPDATE announcements
-                SET title = ?, url = COALESCE(?, url), content_hash = ?, raw_content = ?, created_at = CURRENT_TIMESTAMP
-                WHERE site_name = ? AND announcement_id = ?
-            ''', (new_title, new_url, new_hash, new_raw_content, site_name, announcement_id))
-            
-            self.conn.commit()
-            return cursor.rowcount > 0
-            
-        except Exception as e:
-            log_database_error(f"🛑 Duyuru güncelleme ({announcement_id})", e)
-            self.conn.rollback()
-            return False
+        with self._lock:
+            try:
+                cursor = self.conn.cursor()
+                # SET ifadelerinin tamamı satırın güncelleme öncesi değerleriyle hesaplanır.
+                cursor.execute('''
+                    UPDATE announcements
+                    SET title                = :title,
+                        url                  = :url,
+                        content_hash         = :content_hash,
+                        content_text         = :content_text,
+                        updated_at           = CASE WHEN :queue THEN CURRENT_TIMESTAMP ELSE updated_at END,
+                        notify_attempts      = CASE WHEN :queue AND pending_notification IS NULL
+                                                    THEN 0 ELSE notify_attempts END,
+                        pending_notification = CASE WHEN :queue
+                                                    THEN COALESCE(pending_notification, 'update')
+                                                    ELSE pending_notification END
+                    WHERE site_key = :site_key AND announcement_id = :announcement_id
+                ''', {
+                    'title': title,
+                    'url': url,
+                    'content_hash': content_hash,
+                    'content_text': content_text,
+                    'queue': queue_update,
+                    'site_key': site_key,
+                    'announcement_id': announcement_id,
+                })
+                self.conn.commit()
+                return cursor.rowcount > 0
 
-    def get_total_announcements(self, site_name: Optional[str] = None) -> int:
+            except Exception as e:
+                log_database_error(f"🛑 Duyuru güncelleme ({announcement_id})", e)
+                self.conn.rollback()
+                return False
+
+    def get_pending_notifications(self, site_key: str) -> List[Dict]:
+        """
+        Sitenin bildirim kuyruğundaki kayıtlarını kayıt sırasıyla döndürür.
+
+        Args:
+            site_key: Config'deki site anahtarı.
+
+        Returns:
+            Kuyruktaki duyuruların listesi (hata durumunda boş liste).
+        """
+        with self._lock:
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM announcements
+                    WHERE site_key = ? AND pending_notification IS NOT NULL
+                    ORDER BY id
+                ''', (site_key,))
+                return [dict(row) for row in cursor.fetchall()]
+
+            except Exception as e:
+                log_database_error("🛑 Bildirim kuyruğu getirme", e)
+                return []
+
+    def mark_notification_sent(self, row_id: int) -> None:
+        """Başarıyla gönderilen bildirimi kuyruktan çıkarır ve `notified_at` değerini günceller."""
+        with self._lock:
+            try:
+                self.conn.execute('''
+                    UPDATE announcements
+                    SET pending_notification = NULL,
+                        notify_attempts      = 0,
+                        notified_at          = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (row_id,))
+                self.conn.commit()
+
+            except Exception as e:
+                log_database_error(f"🛑 Bildirim gönderildi işaretleme (id={row_id})", e)
+                self.conn.rollback()
+
+    def record_notification_failure(self, row_id: int) -> int:
+        """
+        Başarısız bir gönderim denemesini kaydeder.
+
+        Returns:
+            Güncel başarısız deneme sayısı (hata durumunda 0).
+        """
+        with self._lock:
+            try:
+                self.conn.execute(
+                    "UPDATE announcements SET notify_attempts = notify_attempts + 1 WHERE id = ?",
+                    (row_id,),
+                )
+                self.conn.commit()
+                row = self.conn.execute("SELECT notify_attempts FROM announcements WHERE id = ?", (row_id,)).fetchone()
+                return row['notify_attempts'] if row else 0
+
+            except Exception as e:
+                log_database_error(f"🛑 Bildirim denemesi kaydetme (id={row_id})", e)
+                self.conn.rollback()
+                return 0
+
+    def abandon_notification(self, row_id: int) -> None:
+        """Bildirimi kuyruktan çıkarır; başarısız deneme sayısı inceleme için korunur."""
+        with self._lock:
+            try:
+                self.conn.execute("UPDATE announcements SET pending_notification = NULL WHERE id = ?", (row_id,))
+                self.conn.commit()
+
+            except Exception as e:
+                log_database_error(f"🛑 Bildirimden vazgeçme (id={row_id})", e)
+                self.conn.rollback()
+
+    def get_total_announcements(self, site_key: Optional[str] = None) -> int:
         """
         Veritabanındaki toplam duyuru sayısını döndürür.
-        
+
         Args:
-            site_name: Belirli bir site (None ise tüm siteler).
-            
+            site_key: Belirli bir site (None ise tüm siteler).
+
         Returns:
             Toplam duyuru sayısı.
         """
-        try:
-            cursor = self.conn.cursor()
-            
-            if site_name:
-                cursor.execute('SELECT COUNT(*) as count FROM announcements WHERE site_name = ?', (site_name,))
-            else:
-                cursor.execute('SELECT COUNT(*) as count FROM announcements')
-            
-            result = cursor.fetchone()
-            return result['count']
-            
-        except Exception as e:
-            log_database_error("🛑 Sayım (get_total)", e)
-            return 0
+        with self._lock:
+            try:
+                cursor = self.conn.cursor()
+                if site_key:
+                    cursor.execute('SELECT COUNT(*) AS count FROM announcements WHERE site_key = ?', (site_key,))
+                else:
+                    cursor.execute('SELECT COUNT(*) AS count FROM announcements')
+                return cursor.fetchone()['count']
 
-    def generate_hash(self, text: Optional[str], fallback_text: str = "") -> str:
+            except Exception as e:
+                log_database_error("🛑 Sayım (get_total)", e)
+                return 0
+
+    @staticmethod
+    def generate_hash(text: Optional[str]) -> Optional[str]:
         """
-        Bir metin için MD5 hash üretir.
+        İçerik için SHA-256 hash üretir.
 
-        Eğer ana 'text' (genellikle 'content') boş veya None ise,
-        'fallback_text'i (genellikle 'title') hash'ler.
-        Bu, içeriği çekilemeyen duyuruların (örn: ilk çalıştırma)
-        başlık üzerinden takip edilebilmesini sağlar.
-        
         Args:
-            text: Hash'lenecek ana metin (içerik) (None olabilir)
-            fallback_text: 'text' boşsa kullanılacak yedek metin (başlık).
-            
+            text: Hash'lenecek içerik (None veya boş olabilir).
+
         Returns:
-            MD5 hash (hex digest).
+            Hex digest; içerik yoksa None (içerik bilinmiyor).
         """
-        data_to_hash = text if text else fallback_text
-        return hashlib.md5(data_to_hash.encode('utf-8')).hexdigest()
-    
+        if not text:
+            return None
+        return hashlib.sha256(text.encode('utf-8')).hexdigest()
+
     def close(self):
-        """
-        Thread'e özel veritabanı bağlantısını kapatır.
-        
-        Thread-local olduğu için her thread kendi bağlantısını kapatır.
-        Aynı thread'den birden fazla çağrılması güvenlidir (hasattr kontrolü).
-        """
-        # Sadece bu thread'e ait bağlantı varsa kapat
-        if hasattr(self.local_storage, 'conn'):
-            self.local_storage.conn.close()
-            del self.local_storage.conn
-            log_info(f"🔒 DB Bağlantısı (Thread: {threading.current_thread().name}) kapatıldı.")
+        """Açık veritabanı bağlantısını kapatır."""
+        with self._lock:
+            if self._conn is not None:
+                self._conn.close()
+                self._conn = None
+                log_info("🔒 Veritabanı bağlantısı kapatıldı.")
