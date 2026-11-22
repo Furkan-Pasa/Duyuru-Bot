@@ -24,7 +24,7 @@ htmlcov/
 .idea/
 
 # Çalışma zamanı verileri
-logs/
+logs
 data/
 
 # Yerel notlar
