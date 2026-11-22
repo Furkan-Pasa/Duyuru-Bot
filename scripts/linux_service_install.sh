@@ -2,7 +2,7 @@
 set -e
 
 # =========================================
-# Duyuru-Bot systemd Servis Kurulum Betiği
+# Duyuru-Bot systemd Servis Kurulum Betiği 
 # =========================================
 
 # root yetkisi kontrolü
